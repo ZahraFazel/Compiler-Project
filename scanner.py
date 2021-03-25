@@ -3,7 +3,7 @@ from utils import read
 # except for = and ==
 symbols = [';', ':', ',', '[', ']', '(', ')', '{', '}', '+', '-', '*', '<', '>']
 keywords = ['if', 'else', 'void', 'int', 'while', 'break', 'switch', 'default', 'case', 'return', 'for']
-spaces = [' ', '\n', '\t', '\v', '\r', '\f']
+whitespaces = [' ', '\n', '\t', '\v', '\r', '\f']
 
 
 class Scanner:
@@ -30,7 +30,7 @@ class Scanner:
             length = len(self.unread)
             for i in range(len(self.unread)):
                 if not self.unread[i].isalnum():
-                    if self.unread[i] in symbols + spaces:
+                    if self.unread[i] in symbols + whitespaces:
                         length = i
                         break
                     else:
@@ -42,10 +42,10 @@ class Scanner:
         if self.unread[0].isnumeric():
             for i in range(len(self.unread)):
                 if not self.unread[i].isnumeric():
-                    if self.unread[i] in symbols + spaces or self.unread[i].isalpha():
+                    if self.unread[i] in symbols + whitespaces or self.unread[i].isalpha():
                         return self.return_function('NUM', i)
                     else:
                         return self.return_function('ERROR', i + 1)
-        if self.unread[0] in spaces:
+        if self.unread[0] in whitespaces:
             return self.return_function('WHITESPACE', 1)
         return self.return_function('ERROR', 1)
