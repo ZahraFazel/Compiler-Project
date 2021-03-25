@@ -37,7 +37,7 @@ class Scanner:
                         break
                     else:
                         return self.return_function('INPUT ERROR', i + 1)
-            if self.return_function[:length] in keywords:
+            if self.unread[:length] in keywords:
                 return self.return_function('KEYWORD', length)
             else:
                 return self.return_function('ID', length)
@@ -50,7 +50,7 @@ class Scanner:
                         return self.return_function('NUM ERROR', i + 1)
         if self.unread[0] in whitespaces:
             return self.return_function('WHITESPACE', 1)
-        # return self.return_function('ERROR', 1)
+        return self.return_function('ERROR', 1)
 
     def fill_symbol_table(self, token_type, token):
         if token_type == 'KEYWORD':
@@ -96,7 +96,13 @@ class Scanner:
 
     def scan(self):
         while True:
-            token_type, token = self.get_next_token()
-            if token_type == 'EOF':
+            token_type = self.get_next_token()
+            if token_type[0] == 'EOF':
                 break
         # todo write to files
+
+
+scanner = Scanner('input_output/input1.txt')
+scanner.scan()
+print(scanner.symbol_table)
+print(scanner.tokens)
