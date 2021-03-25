@@ -12,8 +12,7 @@ class Scanner:
         self.file = read(path)
         self.unread = self.file
         self.errors, self.tokens, self.symbol_table = {k: [] for k in range(1, self.file.count('\n') + 2)},\
-                                                      {k: [] for k in range(1, self.file.count('\n') + 2)}, \
-                                                      {'KEYWORD': set(), 'ID': set()}
+                                                      {k: [] for k in range(1, self.file.count('\n') + 2)}, []
 
     def return_function(self, token_type, token_len):
         token = self.unread[:token_len]
@@ -84,12 +83,14 @@ class Scanner:
         return self.return_function('ERROR: Invalid input', 1)
 
     def fill_symbol_table(self, token_type, token):
-        if token_type == 'ID' or token_type == 'KEYWORD':
-            self.symbol_table[token_type].add(token)
+        if token_type == 'ID' and not token in self.symbol_table:
+            self.symbol_table.append(token)
 
     def fill_errors(self, token_type, token):
         if token_type.startswith('ERROR'):
-            self.errors[self.line].append('(' + token + ',' + token_type[7:] + ')')
+            if token_type.endswith('Unclosed comment'):
+                token = token[:7]
+            self.errors[self.line].append('(' + token + ', ' + token_type[7:] + ')')
 
     def fill_tokens(self, token_type, token):
         if not token_type.startswith('ERROR') and (token_type == 'ID' or token_type == 'KEYWORD'
