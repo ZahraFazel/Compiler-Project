@@ -7,3 +7,4 @@ while True:
         break
 print(scanner.symbol_table)
 print(scanner.tokens)
+print(scanner.errors)

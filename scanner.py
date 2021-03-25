@@ -11,8 +11,8 @@ class Scanner:
         self.line = 1
         self.file = read(path)
         self.unread = self.file
-        self.errors, self.tokens, self.symbol_table = {k: [] for k in range(self.file.count('\n') + 1)},\
-                                                      {k: [] for k in range(self.file.count('\n') + 1)}, \
+        self.errors, self.tokens, self.symbol_table = {k: [] for k in range(1, self.file.count('\n') + 2)},\
+                                                      {k: [] for k in range(1, self.file.count('\n') + 2)}, \
                                                       {'KEYWORD': set(), 'ID': set()}
 
     def return_function(self, token_type, token_len):
@@ -27,7 +27,19 @@ class Scanner:
         if len(self.unread) == 0:
             return 'EOF', 'EOF'
         # todo whitespace
-        # todo comment
+
+        if self.unread[0] == '/':
+            if len(self.unread) == 1:
+                return self.return_function('ERROR: Invalid input', 1)
+            elif self.unread[1] == '/':
+                for i in range(len(self.unread)):
+                    if self.unread[i] == '\n':
+                        return self.return_function('COMMENT', i)
+            elif self.unread[1] == '*':
+                for i in range(len(self.unread)):
+                    if self.unread[i] == '*' and i + 1 < len(self.unread) and self.unread[i + 1] == '/':
+                        return self.return_function('COMMENT', i + 2)
+                return self.return_function('ERROR: Unclosed comment', len(self.unread))
 
         if self.unread[0] in Scanner.symbols:
             if len(self.unread) == 1:
@@ -75,5 +87,6 @@ class Scanner:
             self.errors[self.line].append('(' + token + ',' + token_type[7:] + ')')
 
     def fill_tokens(self, token_type, token):
-        if not token_type.startswith('ERROR') and (token_type == 'ID' or token_type == 'KEYWORD' or token_type == 'NUM'):
+        if not token_type.startswith('ERROR') and (token_type == 'ID' or token_type == 'KEYWORD'
+                                                   or token_type == 'NUM' or token_type == 'SYMBOL'):
             self.tokens[self.line].append('(' + token_type + ', ' + token + ')')
