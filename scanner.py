@@ -11,13 +11,15 @@ class Scanner:
         self.line = 1
         self.file = read(path)
         self.unread = self.file
-        self.errors, self.tokens = {}, {}
-        self.symbol_table = set()
+        self.errors, self.tokens, self.symbol_table = {}, {}, {}
 
     def return_function(self, token_type, token_len):
         token = self.unread[:token_len]
         self.unread = self.unread[token_len:]
-        return token_type, token
+        self.fill_tokens(token_type, token)
+        self.fill_errors(token_type, token)
+        self.fill_symbol_table(token_type, token)
+        return
 
     def get_next_token(self):
         if len(self.unread) == 0:
@@ -49,3 +51,26 @@ class Scanner:
         if self.unread[0] in whitespaces:
             return self.return_function('WHITESPACE', 1)
         return self.return_function('ERROR', 1)
+
+    def fill_symbol_table(self, token_type, token):
+        if token_type == 'KEYWORD':
+            if 'KEYWORD' in self.symbol_table.keys():
+                self.symbol_table['KEYWORD'].add(token)
+            else:
+                self.symbol_table['KEYWORD'] = set(token)
+        if token_type == 'ID':
+            if 'ID' in self.symbol_table.keys():
+                self.symbol_table['ID'].add(token)
+            else:
+                self.symbol_table['ID'] = set(token)
+
+    def fill_errors(self, token_type, token):
+        pass
+
+    def fill_tokens(self, token_type, token):
+        if token_type == 'WHITESPACE' or token_type == 'COMMENT' or token_type == 'EOF':
+            return
+        if self.line in self.tokens.keys():
+            self.tokens[self.line] += ' (' + token_type + ', ' + token + ')'
+        else:
+            self.tokens[self.line] = ' (' + token_type + ', ' + token + ')'
