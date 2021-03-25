@@ -26,7 +26,15 @@ class Scanner:
     def get_next_token(self):
         if len(self.unread) == 0:
             return 'EOF', 'EOF'
-        # todo whitespace
+
+        if self.unread[0] in self.whitespaces:
+            if self.unread[0] == '\n':
+                self.line += 1
+                return self.return_function('WHITESPACE', 1)
+            else:
+                for i in range(len(self.unread)):
+                    if not self.unread[i].isspace():
+                        return self.return_function('WHITESPACE', i)
 
         if self.unread[0] == '/':
             if len(self.unread) == 1:
@@ -72,9 +80,6 @@ class Scanner:
                         return self.return_function('NUM', i)
                     else:
                         return self.return_function('ERROR: Invalid number', i + 1)
-
-        if self.unread[0] in Scanner.whitespaces:
-            return self.return_function('WHITESPACE', 1)
 
         return self.return_function('ERROR: Invalid input', 1)
 
