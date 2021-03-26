@@ -21,8 +21,11 @@ def run(path):
         for i in scanner.errors.keys():
             if len(scanner.errors[i]) > 0:
                 no_errors = False
+                write_str = (str(i) + '.').ljust(8)
                 for error in scanner.errors[i]:
-                    file.write((str(i) + '.').ljust(8) + error + '\n')
+                    write_str += error + ' '
+                write_str += '\n'
+                file.write(write_str)
         if no_errors:
             file.write('There is no lexical error.')
 

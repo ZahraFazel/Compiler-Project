@@ -12,7 +12,7 @@ class Scanner:
         self.unread = self.file
         self.errors, self.tokens, self.symbol_table = {k: [] for k in range(1, self.file.count('\n') + 2)}, \
                                                       {k: [] for k in range(1, self.file.count('\n') + 2)}, \
-                                                      [x for x in self.keywords]
+                                                      []
 
     def return_function(self, token_type, token_len):
         token = self.unread[:token_len]
@@ -100,7 +100,7 @@ class Scanner:
             self.tokens[self.line].append('(' + token_type + ', ' + token + ')')
 
 
-# scanner = Scanner('test.txt')
+# scanner = Scanner('Tests/T08/input.txt')
 # while True:
 #     token_type = scanner.get_next_token()
 #     if token_type[0] == 'EOF':

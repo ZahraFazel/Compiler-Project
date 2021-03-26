@@ -1,2 +1,0 @@
-7.      (out$, Invalid input)
-7.      (put£, Invalid input)
