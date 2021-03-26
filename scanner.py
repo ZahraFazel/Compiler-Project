@@ -2,7 +2,6 @@ from utils import read
 
 
 class Scanner:
-
     symbols = [';', ':', ',', '[', ']', '(', ')', '{', '}', '+', '-', '<', '>', '*', '=']
     keywords = ['if', 'else', 'void', 'int', 'while', 'break', 'switch', 'default', 'case', 'return', 'for']
     whitespaces = [' ', '\n', '\t', '\v', '\r', '\f']
@@ -11,7 +10,7 @@ class Scanner:
         self.line = 1
         self.file = read(path)
         self.unread = self.file
-        self.errors, self.tokens, self.symbol_table = {k: [] for k in range(1, self.file.count('\n') + 2)},\
+        self.errors, self.tokens, self.symbol_table = {k: [] for k in range(1, self.file.count('\n') + 2)}, \
                                                       {k: [] for k in range(1, self.file.count('\n') + 2)}, []
 
     def return_function(self, token_type, token_len):
@@ -32,7 +31,7 @@ class Scanner:
                 return self.return_function('WHITESPACE', 1)
             else:
                 for i in range(len(self.unread)):
-                    if not self.unread[i].isspace():
+                    if not self.unread[i].isspace() or self.unread[i] == '\n':
                         return self.return_function('WHITESPACE', i)
 
         if self.unread[0] == '/':
@@ -50,7 +49,10 @@ class Scanner:
 
         if self.unread[0] in Scanner.symbols:
             if len(self.unread) == 1:
-                return self.return_function('ERROR: Invalid input', 1)
+                if self.unread[0] == '}':
+                    return self.return_function('SYMBOL', 1)
+                else:
+                    return self.return_function('ERROR: Invalid input', 1)
             else:
                 if self.unread[0:2] == '==':
                     return self.return_function('SYMBOL', 2)
@@ -83,13 +85,13 @@ class Scanner:
         return self.return_function('ERROR: Invalid input', 1)
 
     def fill_symbol_table(self, token_type, token):
-        if token_type == 'ID' and not token in self.symbol_table:
+        if token_type == 'ID' and token not in self.symbol_table:
             self.symbol_table.append(token)
 
     def fill_errors(self, token_type, token):
         if token_type.startswith('ERROR'):
             if token_type.endswith('Unclosed comment'):
-                token = token[:7]
+                token = token[:7] + '...'
             self.errors[self.line].append('(' + token + ', ' + token_type[7:] + ')')
 
     def fill_tokens(self, token_type, token):
