@@ -3,10 +3,10 @@ from compiler import run
 from os import mkdir, chdir
 
 
-for file in glob('D:/University/Compiler Design/Project/Tests/*/input.txt'):
+for file in glob('Tests/*/input.txt'):
     file = file.replace('\\', '/')
     folder = file.split('/')[-2]
-    path = 'D:/University/Compiler Design/Project/Tests/' + folder
+    path = 'Tests/' + folder
     chdir(path)
     mkdir('output')
     run(path)

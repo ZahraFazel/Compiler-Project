@@ -11,7 +11,8 @@ class Scanner:
         self.file = read(path)
         self.unread = self.file
         self.errors, self.tokens, self.symbol_table = {k: [] for k in range(1, self.file.count('\n') + 2)}, \
-                                                      {k: [] for k in range(1, self.file.count('\n') + 2)}, []
+                                                      {k: [] for k in range(1, self.file.count('\n') + 2)}, \
+                                                      [x for x in self.keywords]
 
     def return_function(self, token_type, token_len):
         token = self.unread[:token_len]
@@ -77,11 +78,10 @@ class Scanner:
         if self.unread[0].isnumeric():
             for i in range(len(self.unread)):
                 if not self.unread[i].isnumeric():
-                    if self.unread[i] in Scanner.symbols + Scanner.whitespaces or self.unread[i].isalpha():
+                    if self.unread[i] in Scanner.symbols + Scanner.whitespaces:
                         return self.return_function('NUM', i)
                     else:
                         return self.return_function('ERROR: Invalid number', i + 1)
-
         return self.return_function('ERROR: Invalid input', 1)
 
     def fill_symbol_table(self, token_type, token):
@@ -98,3 +98,13 @@ class Scanner:
         if not token_type.startswith('ERROR') and (token_type == 'ID' or token_type == 'KEYWORD'
                                                    or token_type == 'NUM' or token_type == 'SYMBOL'):
             self.tokens[self.line].append('(' + token_type + ', ' + token + ')')
+
+
+# scanner = Scanner('test.txt')
+# while True:
+#     token_type = scanner.get_next_token()
+#     if token_type[0] == 'EOF':
+#         break
+# print(scanner.tokens)
+# print(scanner.errors)
+# print(scanner.symbol_table)
