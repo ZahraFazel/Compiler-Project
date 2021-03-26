@@ -1,0 +1,5 @@
+1.	(KEYWORD, int) (ID, main) (SYMBOL, () (SYMBOL, )) (SYMBOL, {)
+2.	(ID, print) (SYMBOL, () (NUM, 10) (NUM, 20) (NUM, 3) (NUM, 15) (SYMBOL, )) (SYMBOL, ;)
+3.	(ID, print) (SYMBOL, () (SYMBOL, )) (SYMBOL, ;)
+4.	(ID, ho00ly) (ID, t) (SYMBOL, ,) (SYMBOL, ,) (SYMBOL, ,) (SYMBOL, ;)
+5.	(SYMBOL, })
