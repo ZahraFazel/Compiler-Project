@@ -1,3 +1,8 @@
+"""
+Zahra Fazel 96102053
+Fereshteh Forghani 96102104
+"""
+
 from scanner import Scanner
 
 
