@@ -1,2 +1,2 @@
-6.	(whi$, Invalid input)
-11.	(1d, Invalid number)
+6.      (whi$, Invalid input) 
+11.     (1d, Invalid number) 

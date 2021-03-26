@@ -11,8 +11,7 @@ class Scanner:
         self.file = read(path)
         self.unread = self.file
         self.errors, self.tokens, self.symbol_table = {k: [] for k in range(1, self.file.count('\n') + 2)}, \
-                                                      {k: [] for k in range(1, self.file.count('\n') + 2)}, \
-                                                      []
+                                                      {k: [] for k in range(1, self.file.count('\n') + 2)}, []
 
     def return_function(self, token_type, token_len):
         token = self.unread[:token_len]
@@ -45,6 +44,7 @@ class Scanner:
             elif self.unread[1] == '*':
                 for i in range(len(self.unread)):
                     if self.unread[i] == '*' and i + 1 < len(self.unread) and self.unread[i + 1] == '/':
+                        self.line += self.unread[:i + 2].count('\n')
                         return self.return_function('COMMENT', i + 2)
                 return self.return_function('ERROR: Unclosed comment', len(self.unread))
 

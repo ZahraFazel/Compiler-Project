@@ -1,14 +1,17 @@
 from scanner import Scanner
 
 
-def run(path):
-    scanner = Scanner(path + '/input.txt')
+def run(path=''):
+    input_path = path + '/input.txt' if path != '' else 'input.txt'
+    # output_path = path + '/output/'
+    output_path = ''
+    scanner = Scanner(input_path)
     while True:
         token_type = scanner.get_next_token()
         if token_type[0] == 'EOF':
             break
 
-    with open(path + '/output/tokens.txt', 'w') as file:
+    with open(output_path + 'tokens.txt', 'w') as file:
         for i in scanner.tokens.keys():
             if len(scanner.tokens[i]) > 0:
                 file.write((str(i) + '.').ljust(8))
@@ -16,7 +19,7 @@ def run(path):
                     file.write(token + ' ')
                 file.write('\n')
 
-    with open(path + '/output/lexical_errors.txt', 'w') as file:
+    with open(output_path + 'lexical_errors.txt', 'w') as file:
         no_errors = True
         for i in scanner.errors.keys():
             if len(scanner.errors[i]) > 0:
@@ -29,7 +32,7 @@ def run(path):
         if no_errors:
             file.write('There is no lexical error.')
 
-    with open(path + '/output/symbol_table.txt', 'w') as file:
+    with open(output_path + 'symbol_table.txt', 'w') as file:
         i = 1
         for keyword in scanner.keywords:
             file.write((str(i) + '.').ljust(8) + keyword + '\n')
@@ -38,3 +41,5 @@ def run(path):
             file.write((str(i) + '.').ljust(8) + id + '\n')
             i += 1
 
+
+run()
