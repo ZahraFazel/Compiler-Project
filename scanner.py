@@ -49,17 +49,11 @@ class Scanner:
                 return self.return_function('ERROR: Unclosed comment', len(self.unread))
 
         if self.unread[0] in Scanner.symbols:
-            if len(self.unread) == 1:
-                if self.unread[0] == '}':
-                    return self.return_function('SYMBOL', 1)
-                else:
-                    return self.return_function('ERROR: Invalid input', 1)
-            else:
-                if self.unread[0:2] == '==':
-                    return self.return_function('SYMBOL', 2)
-                elif self.unread[0:2] == '*/':
-                    return self.return_function('ERROR: Unmatched comment', 2)
-                return self.return_function('SYMBOL', 1)
+            if self.unread[0:2] == '==':
+                return self.return_function('SYMBOL', 2)
+            elif self.unread[0:2] == '*/':
+                return self.return_function('ERROR: Unmatched comment', 2)
+            return self.return_function('SYMBOL', 1)
 
         if self.unread[0].isalpha():
             length = len(self.unread)
