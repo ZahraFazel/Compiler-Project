@@ -5,6 +5,11 @@ class Scanner:
     symbols = [';', ':', ',', '[', ']', '(', ')', '{', '}', '+', '-', '<', '>', '*', '=']
     keywords = ['if', 'else', 'void', 'int', 'while', 'break', 'switch', 'default', 'case', 'return', 'for']
     whitespaces = [' ', '\n', '\t', '\v', '\r', '\f']
+    alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
+                'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    number = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    valid_characters = symbols + whitespaces + alphabet + number + ['/']
 
     def __init__(self, path):
         self.line = 1
@@ -49,17 +54,25 @@ class Scanner:
                 return self.return_function('ERROR: Unclosed comment', len(self.unread))
 
         if self.unread[0] in Scanner.symbols:
-            if self.unread[0:2] == '==':
-                return self.return_function('SYMBOL', 2)
-            elif self.unread[0:2] == '*/':
-                return self.return_function('ERROR: Unmatched comment', 2)
+            if self.unread[0] == '=':
+                if self.unread[1] == '=':
+                    return self.return_function('SYMBOL', 2)
+                elif self.unread[1] in Scanner.valid_characters:
+                    return self.return_function('SYMBOL', 1)
+                return self.return_function('ERROR: Invalid input', 2)
+            elif self.unread[0] == '*':
+                if self.unread[1] == '/':
+                    return self.return_function('ERROR: Unmatched comment', 2)
+                elif self.unread[1] in Scanner.valid_characters:
+                    return self.return_function('SYMBOL', 1)
+                return self.return_function('ERROR: Invalid input', 2)
             return self.return_function('SYMBOL', 1)
 
-        if self.unread[0].isalpha():
+        if self.unread[0] in Scanner.alphabet:
             length = len(self.unread)
             for i in range(len(self.unread)):
-                if not self.unread[i].isalnum():
-                    if self.unread[i] in Scanner.symbols + Scanner.whitespaces:
+                if not (self.unread[i] in Scanner.alphabet or self.unread[i] in Scanner.number):
+                    if self.unread[i] in Scanner.symbols + Scanner.whitespaces or self.unread[i] == '/':
                         length = i
                         break
                     else:
@@ -69,10 +82,10 @@ class Scanner:
             else:
                 return self.return_function('ID', length)
 
-        if self.unread[0].isnumeric():
+        if self.unread[0] in Scanner.number:
             for i in range(len(self.unread)):
-                if not self.unread[i].isnumeric():
-                    if self.unread[i] in Scanner.symbols + Scanner.whitespaces:
+                if not self.unread[i] in Scanner.number:
+                    if self.unread[i] in Scanner.symbols + Scanner.whitespaces or self.unread[i] == '/':
                         return self.return_function('NUM', i)
                     else:
                         return self.return_function('ERROR: Invalid number', i + 1)
@@ -92,7 +105,6 @@ class Scanner:
         if not token_type.startswith('ERROR') and (token_type == 'ID' or token_type == 'KEYWORD'
                                                    or token_type == 'NUM' or token_type == 'SYMBOL'):
             self.tokens[self.line].append('(' + token_type + ', ' + token + ')')
-
 
 # scanner = Scanner('Tests/T08/input.txt')
 # while True:
