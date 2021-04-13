@@ -1,2 +1,2 @@
-1.	(KEYWORD, if) (SYMBOL, () (SYMBOL, ==) (SYMBOL, ))
-2.	(SYMBOL, ;)
+1.      (KEYWORD, if) (SYMBOL, () (SYMBOL, ==) (SYMBOL, )) 
+2.      (SYMBOL, ;) 

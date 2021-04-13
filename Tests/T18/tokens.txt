@@ -1,1 +1,1 @@
-4.	(SYMBOL, *) (SYMBOL, *)
+4.      (SYMBOL, *) (SYMBOL, *) 

@@ -1,2 +1,2 @@
-1.	(if$, Invalid input)
-4.	(!, Invalid input)
+1.      (if$, Invalid input) 
+4.      (!, Invalid input) 

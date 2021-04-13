@@ -1,1 +1,1 @@
-3.	(/*:D, Unclosed comment)
+3.      (/*:D..., Unclosed comment) 
