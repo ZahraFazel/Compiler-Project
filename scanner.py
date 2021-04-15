@@ -24,11 +24,14 @@ class Scanner:
         self.fill_tokens(token_type, token)
         self.fill_errors(token_type, token)
         self.fill_symbol_table(token_type, token)
-        return token_type, token
+        if not token_type.startswith('ERROR') and (token_type == 'ID' or token_type == 'KEYWORD'
+                                                   or token_type == 'NUM' or token_type == 'SYMBOL'):
+            return token_type, token
+        return None, None
 
     def get_next_token(self):
         if len(self.unread) == 0:
-            return 'EOF', 'EOF'
+            return 'EOF', '$'
 
         if self.unread[0] in self.whitespaces:
             if self.unread[0] == '\n':
