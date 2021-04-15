@@ -4,10 +4,10 @@ from scanner import Scanner
 
 class Parser:
 
-    def __init__(self, scanner):
+    def __init__(self, scr):
         self.lookahead_type = None
         self.lookahead_token = None
-        self.scanner = scanner
+        self.scanner = scr
         self.parse_tree = None
         self.errors = ''
 
@@ -116,15 +116,229 @@ class Parser:
         else:
             pass
 
+    # TODO: Zahra
+    # Params -> int ID Param-prime Param-list | void Param-list-void-abtar
     def params(self, parent):
         pass
 
+    # TODO: Fereshteh
+    # Param-list-void-abtar -> ID Param-prime Param-list | EPSILON
+    def param_list_void_abtar(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Param-list -> , Param Param-list | EPSILON
+    def param_list(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Param -> Declaration-initial Param-prime
+    def param(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Param-prime -> [ ] | EPSILON
+    def param_prime(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Compound-stmt -> { Declaration-list Statement-list }
     def compound_stmt(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Statement-list -> Statement Statement-list | EPSILON
+    def statement_list(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Statement -> Expression-stmt | Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt | For-stmt
+    def statement(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Expression-stmt -> Expression ; | break ; | ;
+    def expression_stmt(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Selection-stmt -> if ( Expression ) Statement else Statement
+    def selection_stmt(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Iteration-stmt -> while ( Expression ) Statement
+    def iteration_stmt(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Return-stmt -> return Return-stmt-prime
+    def return_stmt(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Return-stmt-prime -> ; | Expression ;
+    def return_stmt_prime(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # For-stmt -> for ID = Vars Statement
+    def for_stmt(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Vars -> Var Var-zegond
+    def vars(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Var-zegond -> , Var Var-zegond | EPSILON
+    def var_zegond(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Var -> ID Var-prime
+    def var(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Expression -> Simple-expression-zegond | ID B
+    def expression(self, parent):
+        pass
+
+    # TODO: Zahra
+    # B -> = Expression | [ Expression ] H | Simple-expression-prime
+    def b(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # H -> = Expression | G D C
+    def h(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Simple-expression-zegond -> Additive-expression-zegond C
+    def simple_expression_zegond(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Simple-expression-prime -> Additive-expression-prime C
+    def simple_expression_prime(self, parent):
+        pass
+
+    # TODO: Zahra
+    # C -> Relop Additive-expression | EPSILON
+    def c(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Relop -> < | ==
+    def relop(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Additive-expression -> Term D
+    def additive_expression(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Additive-expression-prime -> Term-prime D
+    def additive_expression_prime(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Additive-expression-zegond -> Term-zegond D
+    def additive_expression_zegond(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # D -> Addop Term D | EPSILON
+    def d(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Addop -> + | -
+    def addop(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Term -> Signed-factor G
+    def term(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Term-prime -> Signed-factor-prime G
+    def term_prime(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Term-zegond -> Signed-factor-zegond G
+    def term_zegond(self, parent):
+        pass
+
+    # TODO: Zahra
+    # G -> * Signed-factor G | EPSILON
+    def g(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Signed-factor -> + Factor | - Factor | Factor
+    def signed_factor(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Signed-factor-prime -> Factor-prime
+    def signed_factor_prime(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Signed-factor-zegond -> + Factor | - Factor | Factor-zegond
+    def signed_factor_zegond(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Factor -> ( Expression ) | ID Var-call-prime | NUM
+    def factor(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Var-call-prime -> ( Args ) | Var-prime
+    def var_call_prime(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Var-prime -> [ Expression ] | EPSILON
+    def var_call(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Factor-prime -> ( Args ) | EPSILON
+    def factor_prime(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Factor-zegond -> ( Expression ) | NUM
+    def factor_zegond(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Args -> Arg-list | EPSILON
+    def args(self, parent):
+        pass
+
+    # TODO: Zahra
+    # Arg-list -> Expression Arg-list-prime
+    def arg_list(self, parent):
+        pass
+
+    # TODO: Fereshteh
+    # Arg-list-prime -> , Expression Arg-list-prime | EPSILON
+    def arg_list_prime(self, parent):
         pass
 
 
 scanner = Scanner("Parser_Tests/T1/input.txt")
 parser = Parser(scanner)
 p_tree = parser.parse()
-for pre, _, node in anytree.RenderTree(p_tree):
-    print("%s%s" % (pre, node.name))
+for pre, _, n in anytree.RenderTree(p_tree):
+    print("%s%s" % (pre, n.name))
