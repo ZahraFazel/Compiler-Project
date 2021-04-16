@@ -266,7 +266,6 @@ class Parser:
     def expression_stmt(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Selection-stmt -> if ( Expression ) Statement else Statement
     def selection_stmt(self, parent):
         if self.lookahead_token == 'if':
@@ -292,7 +291,6 @@ class Parser:
     def iteration_stmt(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Return-stmt -> return Return-stmt-prime
     def return_stmt(self, parent):
         if self.lookahead_token == 'return':
@@ -314,7 +312,6 @@ class Parser:
     def return_stmt_prime(self, parent):
         pass
 
-    # TODO: Fereshteh
     # For-stmt -> for ID = Vars Statement
     def for_stmt(self, parent):
         if self.lookahead_token == 'for':
