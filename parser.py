@@ -18,6 +18,7 @@ class Parser:
 
         self.program()
         return self.parse_tree
+
     def next(self):
         self.lookahead_type, self.lookahead_token = self.scanner.get_next_token()
         while self.lookahead_type is None:
@@ -60,7 +61,7 @@ class Parser:
             self.next()
             self.program()
 
-    # declaration-list -> declaration declaration-list | ϵ
+    # declaration-list -> declaration declaration-list | EPSILON
     def declaration_list(self, parent):
         if self.lookahead_token in {'int', 'void'}:
             node = anytree.Node('Declaration list', parent=parent)
@@ -265,7 +266,11 @@ class Parser:
         elif self.lookahead_token == 'for':
             node = anytree.Node('Statement', parent=parent)
             self.for_stmt(node)
-        # TODO errors because of intersection
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else'
+                                                                              , 'if', 'while', 'return', 'for', '+', '-'
+                                                                              , '$'}:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, missing statement'
+            self.next()
 
     # TODO: Zahra
     # Expression-stmt -> Expression ; | break ; | ;
@@ -414,7 +419,10 @@ class Parser:
             self.c(node)
         elif self.lookahead_token in {';', ']', ')', ','}:
             node = anytree.Node('Simple expression prime', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_1 = anytree.Node('Additive expression prime', parent=node)
+            anytree.Node('epsilon', parent=node_1)
+            node_2 = anytree.Node('C', parent=node)
+            anytree.Node('epsilon', parent=node_2)
         else:
             self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
@@ -425,110 +433,234 @@ class Parser:
     def c(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Relop -> < | ==
     def relop(self, parent):
-        pass
+        if self.lookahead_token == '==':
+            node = anytree.Node('Relop', parent=parent)
+            self.match_value(node, '==')
+        elif self.lookahead_token == '<':
+            node = anytree.Node('Relop', parent=parent)
+            self.match_value(node, '<')
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {'(', '+', '-'}:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, missing == or <'
+            self.next()
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.relop(parent)
 
     # TODO: Zahra
     # Additive-expression -> Term D
     def additive_expression(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Additive-expression-prime -> Term-prime D
     def additive_expression_prime(self, parent):
-        pass
+        if self.lookahead_token in {'(', '+', '-', '*'}:
+            node = anytree.Node('Additive expression prime', parent=parent)
+            self.term_prime(node)
+            self.d(node)
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '=='}:
+            node = anytree.Node('Simple expression prime', parent=parent)
+            node_1 = anytree.Node('Term prime', parent=node)
+            anytree.Node('epsilon', parent=node_1)
+            node_2 = anytree.Node('D', parent=node)
+            anytree.Node('epsilon', parent=node_2)
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.additive_expression_prime(parent)
 
     # TODO: Zahra
     # Additive-expression-zegond -> Term-zegond D
     def additive_expression_zegond(self, parent):
         pass
 
-    # TODO: Fereshteh
     # D -> Addop Term D | EPSILON
     def d(self, parent):
-        pass
+        if self.lookahead_token in {'+', '-'}:
+            node = anytree.Node('D', parent=parent)
+            self.addop(node)
+            self.term(node)
+            self.d(node)
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '=='}:
+            node = anytree.Node('D', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.d(parent)
 
     # TODO: Zahra
     # Addop -> + | -
     def addop(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Term -> Signed-factor G
     def term(self, parent):
-        pass
+        if self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {'(', '+', '-'}:
+            node = anytree.Node('Term', parent=parent)
+            self.signed_factor(node)
+            self.g(node)
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-'}:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, missing ID or NUM'
+            self.next()
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.term(parent)
 
     # TODO: Zahra
     # Term-prime -> Signed-factor-prime G
     def term_prime(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Term-zegond -> Signed-factor-zegond G
     def term_zegond(self, parent):
-        pass
+        if self.lookahead_type == 'NUM' or self.lookahead_token in {'(', '+', '-'}:
+            node = anytree.Node('Term Zegond', parent=parent)
+            self.signed_factor_zegond(node)
+            self.g(node)
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-'}:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, missing NUM'
+            self.next()
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.term_zegond(parent)
 
     # TODO: Zahra
     # G -> * Signed-factor G | EPSILON
     def g(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Signed-factor -> + Factor | - Factor | Factor
     def signed_factor(self, parent):
-        pass
+        if self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token == '(':
+            node = anytree.Node('Signed factor', parent=parent)
+            self.factor(node)
+        elif self.lookahead_token == '+':
+            node = anytree.Node('Signed factor', parent=parent)
+            self.match_value(node, '+')
+            self.factor(node)
+        elif self.lookahead_token == '-':
+            node = anytree.Node('Signed factor', parent=parent)
+            self.match_value(node, '-')
+            self.factor(node)
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, missing ID or NUM'
+            self.next()
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.signed_factor(parent)
 
     # TODO: Zahra
     # Signed-factor-prime -> Factor-prime
     def signed_factor_prime(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Signed-factor-zegond -> + Factor | - Factor | Factor-zegond
     def signed_factor_zegond(self, parent):
-        pass
+        if self.lookahead_type == 'NUM' or self.lookahead_token == '(':
+            node = anytree.Node('Signed factor zegond', parent=parent)
+            self.factor_zegond(node)
+        elif self.lookahead_token == '+':
+            node = anytree.Node('Signed factor zegond', parent=parent)
+            self.match_value(node, '+')
+            self.factor(node)
+        elif self.lookahead_token == '-':
+            node = anytree.Node('Signed factor zegond', parent=parent)
+            self.match_value(node, '-')
+            self.factor(node)
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, missing ID or NUM'
+            self.next()
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.signed_factor_zegond(parent)
 
     # TODO: Zahra
     # Factor -> ( Expression ) | ID Var-call-prime | NUM
     def factor(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Var-call-prime -> ( Args ) | Var-prime
     def var_call_prime(self, parent):
-        pass
+        if self.lookahead_token == '(':
+            node = anytree.Node('Var call prime', parent=parent)
+            self.match_value(node, '(')
+            self.args(node)
+            self.match_value(node, ')')
+        elif self.lookahead_token == '[':
+            node = anytree.Node('Var call prime', parent=parent)
+            self.var_prime(node)
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
+            node = anytree.Node('Var call prime', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.var_call_prime(parent)
 
     # TODO: Zahra
     # Var-prime -> [ Expression ] | EPSILON
-    def var_call(self, parent):
+    def var_prime(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Factor-prime -> ( Args ) | EPSILON
     def factor_prime(self, parent):
-        pass
+        if self.lookahead_token == '(':
+            node = anytree.Node('Factor prime', parent=parent)
+            self.match_value(node, '(')
+            self.args(node)
+            self.match_value(node, ')')
+        elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
+            node = anytree.Node('Factor prime', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.factor_prime(parent)
 
     # TODO: Zahra
     # Factor-zegond -> ( Expression ) | NUM
     def factor_zegond(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Args -> Arg-list | EPSILON
     def args(self, parent):
-        pass
+        if self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token == '(':
+            node = anytree.Node('Args', parent=parent)
+            self.arg_list(node)
+        elif self.lookahead_token == ')':
+            node = anytree.Node('Args', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.args(parent)
 
     # TODO: Zahra
     # Arg-list -> Expression Arg-list-prime
     def arg_list(self, parent):
         pass
 
-    # TODO: Fereshteh
     # Arg-list-prime -> , Expression Arg-list-prime | EPSILON
     def arg_list_prime(self, parent):
-        pass
+        if self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token == '(':
+            node = anytree.Node('Args list prime', parent=parent)
+            self.match_value(node, ',')
+            self.expression(node)
+            self.arg_list_prime(node)
+        elif self.lookahead_token == ')':
+            node = anytree.Node('Args list prime', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.arg_list_prime(parent)
 
 
 scanner = Scanner("Parser_Tests/T1/input.txt")

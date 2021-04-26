@@ -4,11 +4,11 @@ from os import mkdir, chdir, path
 
 
 # for file in glob('D:/University/Compiler Design/Project/Tests/*/input.txt'):
-for file in glob('/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/Tests/*/input.txt'):
+for file in glob('/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/Scanner_Tests/*/input.txt'):
     file = file.replace('\\', '/')
     folder = file.split('/')[-2]
     # input_path = 'D:/University/Compiler Design/Project/Tests/' + folder
-    input_path = '/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/Tests/' + folder
+    input_path = '/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/Scanner_Tests/' + folder
     chdir(input_path)
     if not path.exists(input_path + '/output'):
         mkdir('output')
