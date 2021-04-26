@@ -65,7 +65,8 @@ class Parser:
             node = anytree.Node('Declaration list', parent=parent)
             self.declaration(node)
             self.declaration_list(node)
-        elif self.lookahead_type in {'ID', 'NUM', ';', '(', '{', '}', 'break', 'if', 'while', 'return', 'for', '+', '-', '$'}:
+        elif self.lookahead_type in {'ID', 'NUM', ';', '(', '{', '}', 'break', 'if', 'while', 'return', 'for', '+', '-',
+                                     '$'}:
             node = anytree.Node('Declaration list', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
@@ -128,7 +129,8 @@ class Parser:
             self.params(node)
             self.match_value(node, ')')
             self.compound_stmt(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break',
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void',
+                                                                              'break',
                                                                               'if', 'while', 'return', 'for', '+', '-',
                                                                               '$'}:
             self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing Fun_declaration_prime'
@@ -149,7 +151,8 @@ class Parser:
             self.match_type(node, 'NUM')
             self.match_value(node, ']')
             self.match_value(node, ';')
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break',
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void',
+                                                                              'break',
                                                                               'if', 'while', 'return', 'for', '+', '-',
                                                                               '$'}:
             if self.lookahead_type == 'NUM':
@@ -213,9 +216,20 @@ class Parser:
 
     # TODO: Zahra
     # Param-list -> , Param Param-list | EPSILON
-    # First: , EPSILON  Follow: )
     def param_list(self, parent):
-        pass
+        if self.lookahead_token == ',':
+            node = anytree.Node('Param list', parent=parent)
+            self.match_value(node, ',')
+            self.param(node)
+            self.param_list(node)
+        elif self.lookahead_token == ')':
+            node = anytree.Node('Param list', parent=parent)
+            anytree.Node('epsilon', parent=node)
+            anytree.Node(')', parent=parent)
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.param_list(parent)
 
     # Param -> Declaration-initial Param-prime
     def param(self, parent):
@@ -244,7 +258,8 @@ class Parser:
             self.declaration_list(node)
             self.statement_list(node)
             self.match_value(node, '}')
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break',
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void',
+                                                                              'break',
                                                                               'if', 'else', 'while', 'return', 'for',
                                                                               '+', '-', '$'}:
             self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing {'
