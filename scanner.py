@@ -108,12 +108,3 @@ class Scanner:
         if not token_type.startswith('ERROR') and (token_type == 'ID' or token_type == 'KEYWORD'
                                                    or token_type == 'NUM' or token_type == 'SYMBOL'):
             self.tokens[self.line].append('(' + token_type + ', ' + token + ')')
-
-# scanner = Scanner('Tests/T08/input.txt')
-# while True:
-#     token_type = scanner.get_next_token()
-#     if token_type[0] == 'EOF':
-#         break
-# print(scanner.tokens)
-# print(scanner.errors)
-# print(scanner.symbol_table)

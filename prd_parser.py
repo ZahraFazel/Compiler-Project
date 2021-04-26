@@ -1,5 +1,4 @@
 import anytree
-from scanner import Scanner
 
 
 class Parser:
@@ -15,7 +14,6 @@ class Parser:
         self.lookahead_type, self.lookahead_token = self.scanner.get_next_token()
         while self.lookahead_type is None:
             self.lookahead_type, self.lookahead_token = self.scanner.get_next_token()
-
         self.program()
         return self.parse_tree
 
@@ -57,7 +55,7 @@ class Parser:
             anytree.Node('epsilon', parent=node)
             anytree.Node('$', parent=self.parse_tree)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.program()
 
@@ -67,12 +65,11 @@ class Parser:
             node = anytree.Node('Declaration list', parent=parent)
             self.declaration(node)
             self.declaration_list(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'if', 'while'
-                                                                              , 'return', 'for', '+', '-', '$'}:
+        elif self.lookahead_type in {'ID', 'NUM', ';', '(', '{', '}', 'break', 'if', 'while', 'return', 'for', '+', '-', '$'}:
             node = anytree.Node('Declaration list', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.declaration(parent)
 
@@ -82,13 +79,12 @@ class Parser:
             node = anytree.Node('Declaration', parent=parent)
             self.declaration_initial(node)
             self.declaration_prime(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void',
-                                                                              'break', 'if', 'while', 'return', 'for',
-                                                                              '+', '-', '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing declaration'
+        elif self.lookahead_type in {'ID', 'NUM', ';', '(', '{', '}', 'int', 'void', 'break', 'if', 'while', 'return',
+                                     'for', '+', '-', '$'}:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing declaration'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.declaration(parent)
 
@@ -99,10 +95,10 @@ class Parser:
             self.type_specifier(node)
             self.match_type(node, 'ID')
         elif self.lookahead_token in {';', '[', '(', ')', ','}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing declaration_initial'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing declaration_initial'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.declaration_initial(parent)
 
@@ -117,10 +113,10 @@ class Parser:
         elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void',
                                                                               'break', 'if', 'while', 'return', 'for',
                                                                               '+', '-', '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing declaration_prime'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing declaration_prime'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.declaration_prime(parent)
 
@@ -132,13 +128,13 @@ class Parser:
             self.params(node)
             self.match_value(node, ')')
             self.compound_stmt(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break'
-                                                                              , 'if', 'while', 'return', 'for', '+', '-'
-                                                                              , '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing Fun_declaration_prime'
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break',
+                                                                              'if', 'while', 'return', 'for', '+', '-',
+                                                                              '$'}:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing Fun_declaration_prime'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.fun_declaration_prime(parent)
 
@@ -153,16 +149,16 @@ class Parser:
             self.match_type(node, 'NUM')
             self.match_value(node, ']')
             self.match_value(node, ';')
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break'
-                                                                              , 'if', 'while', 'return', 'for', '+', '-'
-                                                                              , '$'}:
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break',
+                                                                              'if', 'while', 'return', 'for', '+', '-',
+                                                                              '$'}:
             if self.lookahead_type == 'NUM':
-                self.errors += '#' + str(scanner.line) + ' : syntax error, missing ['
+                self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing ['
             else:
-                self.errors += '#' + str(scanner.line) + ' : syntax error, missing ;'
+                self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing ;'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.var_declaration_prime(parent)
 
@@ -172,17 +168,33 @@ class Parser:
             node = anytree.Node('Type specifier', parent=parent)
             self.match_type(node, 'KEYWORD')
         elif self.lookahead_type == 'ID':
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing int or void'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing int or void'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.type_specifier(parent)
 
     # TODO: Zahra
     # Params -> int ID Param-prime Param-list | void Param-list-void-abtar
     def params(self, parent):
-        pass
+        if self.lookahead_token == 'int':
+            node = anytree.Node('Params', parent=parent)
+            self.match_type(node, 'KEYWORD')
+            self.match_type(node, 'ID')
+            self.param_prime(node)
+            self.param_list(node)
+        elif self.lookahead_token == 'void':
+            node = anytree.Node('Params', parent=parent)
+            self.match_type(node, 'KEYWORD')
+            self.param_list_void_abtar(node)
+        elif self.lookahead_type == ')':
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing params'
+            self.next()
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.params(parent)
 
     # Param-list-void-abtar -> ID Param-prime Param-list | EPSILON
     def param_list_void_abtar(self, parent):
@@ -195,12 +207,13 @@ class Parser:
             node = anytree.Node('Param list void abtar', paren=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.param_list_void_abtar(parent)
 
     # TODO: Zahra
     # Param-list -> , Param Param-list | EPSILON
+    # First: , EPSILON  Follow: )
     def param_list(self, parent):
         pass
 
@@ -211,10 +224,10 @@ class Parser:
             self.declaration_initial(node)
             self.param_prime(node)
         elif self.lookahead_token in {')', ','}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing int or void'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing int or void'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.param(parent)
 
@@ -231,13 +244,13 @@ class Parser:
             self.declaration_list(node)
             self.statement_list(node)
             self.match_value(node, '}')
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break'
-                                                                              , 'if', 'else', 'while', 'return', 'for'
-                                                                              , '+', '-', '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing {'
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'int', 'void', 'break',
+                                                                              'if', 'else', 'while', 'return', 'for',
+                                                                              '+', '-', '$'}:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing {'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.compound_stmt(parent)
 
@@ -266,10 +279,9 @@ class Parser:
         elif self.lookahead_token == 'for':
             node = anytree.Node('Statement', parent=parent)
             self.for_stmt(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else'
-                                                                              , 'if', 'while', 'return', 'for', '+', '-'
-                                                                              , '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing statement'
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else', 'if',
+                                                                              'while', 'return', 'for', '+', '-', '$'}:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing statement'
             self.next()
 
     # TODO: Zahra
@@ -287,13 +299,12 @@ class Parser:
             self.match_value(node, ')')
             self.match_value(node, 'else')
             self.statement(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else'
-                                                                              , 'if', 'while', 'return', 'for', '+', '-'
-                                                                              , '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing selection stmt'
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else', 'if',
+                                                                              'while', 'return', 'for', '+', '-', '$'}:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing selection stmt'
             # self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.selection_stmt(parent)
 
@@ -308,13 +319,12 @@ class Parser:
             node = anytree.Node('Return stmt', parent=parent)
             self.match_value(node, 'return')
             self.return_stmt_prime(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else'
-                                                                              , 'if', 'while', 'return', 'for', '+', '-'
-                                                                              , '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing return stmt'
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else', 'if',
+                                                                              'while', 'return', 'for', '+', '-', '$'}:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing return stmt'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.return_stmt(parent)
 
@@ -332,13 +342,12 @@ class Parser:
             self.match_value(node, '=')
             self.vars(node)
             self.statement(node)
-        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else'
-                                                                              , 'if', 'while', 'return', 'for', '+', '-'
-                                                                              , '$'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing for stmt'
+        elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {';', '(', '{', '}', 'break', 'else', 'if',
+                                                                              'while', 'return', 'for', '+', '-', '$'}:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing for stmt'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.for_stmt(parent)
 
@@ -359,7 +368,7 @@ class Parser:
             node = anytree.Node('Var zegond', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.var_zegond(parent)
 
@@ -378,10 +387,10 @@ class Parser:
             self.match_type(node, 'ID')
             self.b(node)
         elif self.lookahead_token in {';', ']', ')', ','}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing Expression'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing Expression'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.expression(parent)
 
@@ -402,7 +411,7 @@ class Parser:
             self.d(node)
             self.c(node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.h(parent)
 
@@ -424,7 +433,7 @@ class Parser:
             node_2 = anytree.Node('C', parent=node)
             anytree.Node('epsilon', parent=node_2)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.signed_factor_prime(parent)
 
@@ -442,10 +451,10 @@ class Parser:
             node = anytree.Node('Relop', parent=parent)
             self.match_value(node, '<')
         elif self.lookahead_type in {'ID', 'NUM'} or self.lookahead_token in {'(', '+', '-'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing == or <'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing == or <'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.relop(parent)
 
@@ -467,7 +476,7 @@ class Parser:
             node_2 = anytree.Node('D', parent=node)
             anytree.Node('epsilon', parent=node_2)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.additive_expression_prime(parent)
 
@@ -487,7 +496,7 @@ class Parser:
             node = anytree.Node('D', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.d(parent)
 
@@ -503,10 +512,10 @@ class Parser:
             self.signed_factor(node)
             self.g(node)
         elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing ID or NUM'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing ID or NUM'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.term(parent)
 
@@ -522,10 +531,10 @@ class Parser:
             self.signed_factor_zegond(node)
             self.g(node)
         elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing NUM'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing NUM'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.term_zegond(parent)
 
@@ -548,10 +557,10 @@ class Parser:
             self.match_value(node, '-')
             self.factor(node)
         elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing ID or NUM'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing ID or NUM'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.signed_factor(parent)
 
@@ -574,10 +583,10 @@ class Parser:
             self.match_value(node, '-')
             self.factor(node)
         elif self.lookahead_token in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, missing ID or NUM'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing ID or NUM'
             self.next()
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.signed_factor_zegond(parent)
 
@@ -600,7 +609,7 @@ class Parser:
             node = anytree.Node('Var call prime', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.var_call_prime(parent)
 
@@ -620,7 +629,7 @@ class Parser:
             node = anytree.Node('Factor prime', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.factor_prime(parent)
 
@@ -638,7 +647,7 @@ class Parser:
             node = anytree.Node('Args', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.args(parent)
 
@@ -658,13 +667,6 @@ class Parser:
             node = anytree.Node('Args list prime', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
-            self.errors += '#' + str(scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
             self.next()
             self.arg_list_prime(parent)
-
-
-scanner = Scanner("Parser_Tests/T1/input.txt")
-parser = Parser(scanner)
-p_tree = parser.parse()
-for pre, _, n in anytree.RenderTree(p_tree):
-    print("%s%s" % (pre, n.name))

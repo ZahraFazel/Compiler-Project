@@ -1,0 +1,6 @@
+5.	(#, Invalid input)
+7.	(123., Invalid number)
+9.	(", Invalid input) (result", Invalid input)
+13.	(|, Invalid input) (|, Invalid input)
+14.	(', Invalid input)
+25.	(void$, Invalid input)
