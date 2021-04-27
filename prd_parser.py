@@ -827,7 +827,20 @@ class Parser:
     # TODO: Zahra
     # Var-prime -> [ Expression ] | EPSILON
     def var_prime(self, parent):
-        pass
+        if self.lookahead_token == '[':
+            node = anytree.Node('Var-prime', parent=parent)
+            self.match_type(node, 'SYMBOL')
+            self.expression(node)
+            self.match_value(node, ']')
+        elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_token in [';', ']', '(', ')', ',', '{', 'break', 'if',
+                                                                              'while', 'return', 'for', '<', '==', '+',
+                                                                              '-', '*']:
+            node = anytree.Node('Var-prime', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Factor-prime -> ( Args ) | EPSILON
     def factor_prime(self, parent):
@@ -847,7 +860,21 @@ class Parser:
     # TODO: Zahra
     # Factor-zegond -> ( Expression ) | NUM
     def factor_zegond(self, parent):
-        pass
+        if self.lookahead_token == '(':
+            node = anytree.Node('Factor-zegond', parent=parent)
+            self.match_type(node, 'SYMBOL')
+            self.expression(node)
+            self.match_value(node, ')')
+        elif self.lookahead_type == 'NUM':
+            node = anytree.Node('Factor', parent=parent)
+            self.match_type(node, 'NUM')
+        elif self.lookahead_token in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing factor'
+            self.next()
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Args -> Arg-list | EPSILON
     def args(self, parent):
@@ -865,7 +892,17 @@ class Parser:
     # TODO: Zahra
     # Arg-list -> Expression Arg-list-prime
     def arg_list(self, parent):
-        pass
+        if self.lookahead_type in ['ID', 'NUM'] or self.lookahead_token in ['(', '+', '-']:
+            node = anytree.Node('arg-list', parent=parent)
+            self.expression(node)
+            self.arg_list_prime(node)
+        elif self.lookahead_token == ')':
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing factor'
+            self.next()
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Arg-list-prime -> , Expression Arg-list-prime | EPSILON
     def arg_list_prime(self, parent):
