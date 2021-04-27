@@ -187,7 +187,7 @@ class Parser:
             self.match_type(node, 'KEYWORD')
             self.param_list_void_abtar(node)
         elif self.lookahead_type == ')':
-            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing function parameters'
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing params'
             self.next()
         else:
             self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
@@ -246,7 +246,7 @@ class Parser:
             node = anytree.Node('Param-prime', parent=parent)
             self.match_value(node, '[')
             self.match_value(node, ']')
-        elif self.lookahead_token in ['(', ',']:
+        elif self.lookahead_token in [')', ',']:
             node = anytree.Node('Param-prime', parent=parent)
             anytree.Node('epsilon', parent=node)
         else:
@@ -327,7 +327,7 @@ class Parser:
         elif self.lookahead_token == ';':
             node = anytree.Node('Expression-stmt', parent=parent)
             self.match_type(node, 'SYMBOL')
-        elif self.lookahead_token in ['(', '{', '}', 'else', 'if', 'while', 'return', 'for', '+', '-']:
+        elif self.lookahead_token in ['{', '}', 'else', 'if', 'while', 'return', 'for']:
             self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing expression-stmt'
         else:
             self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
@@ -425,7 +425,18 @@ class Parser:
     # TODO: Zahra
     # Vars -> Var Var-zegond
     def vars(self, parent):
-        pass
+        if self.lookahead_type == 'ID':
+            node = anytree.Node('Vars', parent=parent)
+            self.var(node)
+            self.var_zegond(node)
+        elif self.lookahead_type == 'NUM' or self.lookahead_token in [';', '(', '{', 'break', 'if', 'while', 'return',
+                                                                      'for', '+', '-']:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing vars'
+            # self.next()
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Var-zegond -> , Var Var-zegond | EPSILON
     def var_zegond(self, parent):
@@ -446,7 +457,18 @@ class Parser:
     # TODO: Zahra
     # Var -> ID Var-prime
     def var(self, parent):
-        pass
+        if self.lookahead_type == 'ID':
+            node = anytree.Node('Var', parent=parent)
+            self.match_type(node, 'ID')
+            self.var_prime(node)
+        elif self.lookahead_type == 'NUM' or self.lookahead_token in [';', '(', '{', ',', 'break', 'if', 'while', 'return',
+                                                                      'for', '+', '-']:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing var'
+            # self.next()
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Expression -> Simple-expression-zegond | ID B
     def expression(self, parent):
@@ -468,7 +490,27 @@ class Parser:
     # TODO: Zahra
     # B -> = Expression | [ Expression ] H | Simple-expression-prime
     def b(self, parent):
-        pass
+        if self.lookahead_token == '=':
+            node = anytree.Node('b', parent=parent)
+            self.match_type(node, 'SYMBOL')
+            self.expression(node)
+        elif self.lookahead_token == '[':
+            node = anytree.Node('b', parent=parent)
+            self.match_type(node, 'SYMBOL')
+            self.expression(node)
+            self.match_value(node, ']')
+            self.h(node)
+        elif self.lookahead_token in ['(', '<', '==', '+', '-', '*']:
+            node = anytree.Node('b', parent=parent)
+            self.simple_expression_zegond(node)
+        elif self.lookahead_token in [';', ']', ')', ',']:
+            node = anytree.Node('b', parent=parent)
+            anytree.Node('epsilon', parent=node)
+            # self.next()
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # H -> = Expression | G D C
     def h(self, parent):
