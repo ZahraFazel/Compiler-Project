@@ -686,7 +686,17 @@ class Parser:
     # TODO: Zahra
     # Term-prime -> Signed-factor-prime G
     def term_prime(self, parent):
-        pass
+        if self.lookahead_token in ['(', '*']:
+            node = anytree.Node('term-prime', parent=parent)
+            self.signed_factor_prime(node)
+            self.g(node)
+        elif self.lookahead_token in [';', ']', ')', ',', '<', '==', '+', '-']:
+            node = anytree.Node('test-prime', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Term-zegond -> Signed-factor-zegond G
     def term_zegond(self, parent):
@@ -705,7 +715,17 @@ class Parser:
     # TODO: Zahra
     # G -> * Signed-factor G | EPSILON
     def g(self, parent):
-        pass
+        if self.lookahead_token == '*':
+            node = anytree.Node('g', parent=parent)
+            self.signed_factor(node)
+            self.g(node)
+        elif self.lookahead_token in [';', ']', ')', ',', '<', '==', '+', '-']:
+            node = anytree.Node('g', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Signed-factor -> + Factor | - Factor | Factor
     def signed_factor(self, parent):
@@ -731,7 +751,16 @@ class Parser:
     # TODO: Zahra
     # Signed-factor-prime -> Factor-prime
     def signed_factor_prime(self, parent):
-        pass
+        if self.lookahead_token == '(':
+            node = anytree.Node('Signed-factor-prime', parent=parent)
+            self.factor_prime(node)
+        elif self.lookahead_token in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
+            node = anytree.Node('Signed-factor-prime', parent=parent)
+            anytree.Node('epsilon', parent=node)
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Signed-factor-zegond -> + Factor | - Factor | Factor-zegond
     def signed_factor_zegond(self, parent):
@@ -757,7 +786,25 @@ class Parser:
     # TODO: Zahra
     # Factor -> ( Expression ) | ID Var-call-prime | NUM
     def factor(self, parent):
-        pass
+        if self.lookahead_token == '(':
+            node = anytree.Node('Factor', parent=parent)
+            self.match_type(node, 'SYMBOL')
+            self.expression(node)
+            self.match_value(node, ')')
+        elif self.lookahead_type == 'ID':
+            node = anytree.Node('Factor', parent=parent)
+            self.match_type(node, 'ID')
+            self.var_call_prime(node)
+        elif self.lookahead_type == 'NUM':
+            node = anytree.Node('Factor', parent=parent)
+            self.match_type(node, 'NUM')
+        elif self.lookahead_token in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing factor'
+            self.next()
+        else:
+            self.errors += '#' + str(self.scanner.line) + ' : syntax error, illegal ' + self.lookahead_token
+            self.next()
+            self.vars(parent)
 
     # Var-call-prime -> ( Args ) | Var-prime
     def var_call_prime(self, parent):
