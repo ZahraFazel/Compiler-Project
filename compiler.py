@@ -9,11 +9,11 @@ from scanner import Scanner
 
 
 def run(path=''):
-    scanner = Scanner("Parser_Tests/T6/input.txt")
+    scanner = Scanner("Parser_Tests/T10/input.txt")
     parser = Parser(scanner)
     p_tree = parser.parse()
     for pre, _, n in anytree.RenderTree(p_tree):
-        print("%s%s" % (pre, n.name))
+        print("%s%s " % (pre, n.name))
     if parser.errors == '':
         print('There is no syntax error.')
     print(parser.errors)
