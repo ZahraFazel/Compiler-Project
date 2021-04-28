@@ -545,7 +545,18 @@ class Parser:
             self.simple_expression_prime(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',']:
             node = anytree.Node('B', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_1 = anytree.Node('Simple-expression-prime', parent=node)
+            node_2 = anytree.Node('Additive-expression-prime', parent=node_1)
+            node_4 = anytree.Node('Term-prime', parent=node_2)
+            node_6 = anytree.Node('Signed-factor-prime', parent=node_4)
+            node_8 = anytree.Node('Factor-prime', parent=node_6)
+            anytree.Node('epsilon', parent=node_8)
+            node_7 = anytree.Node('G', parent=node_4)
+            anytree.Node('epsilon', parent=node_7)
+            node_5 = anytree.Node('D', parent=node_2)
+            anytree.Node('epsilon', parent=node_5)
+            node_3 = anytree.Node('C', parent=node_1)
+            anytree.Node('epsilon', parent=node_3)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
@@ -567,7 +578,12 @@ class Parser:
             self.c(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',']:
             node = anytree.Node('H', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_1 = anytree.Node('G', parent=node)
+            anytree.Node('epsilon', parent=node_1)
+            node_2 = anytree.Node('D', parent=node)
+            anytree.Node('epsilon', parent=node_2)
+            node_3 = anytree.Node('C', parent=node)
+            anytree.Node('epsilon', parent=node_3)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
@@ -600,7 +616,17 @@ class Parser:
             self.c(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',']:
             node = anytree.Node('Simple-expression-prime', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_2 = anytree.Node('Additive-expression-prime', parent=node)
+            node_4 = anytree.Node('Term-prime', parent=node_2)
+            node_6 = anytree.Node('Signed-factor-prime', parent=node_4)
+            node_8 = anytree.Node('Factor-prime', parent=node_6)
+            anytree.Node('epsilon', parent=node_8)
+            node_7 = anytree.Node('G', parent=node_4)
+            anytree.Node('epsilon', parent=node_7)
+            node_5 = anytree.Node('D', parent=node_2)
+            anytree.Node('epsilon', parent=node_5)
+            node_3 = anytree.Node('C', parent=node)
+            anytree.Node('epsilon', parent=node_3)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
@@ -668,7 +694,14 @@ class Parser:
             self.d(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==']:
             node = anytree.Node('Additive-expression-prime', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_4 = anytree.Node('Term-prime', parent=node)
+            node_6 = anytree.Node('Signed-factor-prime', parent=node_4)
+            node_8 = anytree.Node('Factor-prime', parent=node_6)
+            anytree.Node('epsilon', parent=node_8)
+            node_7 = anytree.Node('G', parent=node_4)
+            anytree.Node('epsilon', parent=node_7)
+            node_5 = anytree.Node('D', parent=node)
+            anytree.Node('epsilon', parent=node_5)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
@@ -750,7 +783,11 @@ class Parser:
             self.g(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-']:
             node = anytree.Node('Term-prime', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_1 = anytree.Node('Signed-factor-prime', parent=node)
+            node_3 = anytree.Node('Factor-prime', parent=node_1)
+            anytree.Node('epsilon', parent=node_3)
+            node_2 = anytree.Node('G', parent=node)
+            anytree.Node('epsilon', parent=node_2)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
@@ -819,7 +856,8 @@ class Parser:
             self.factor_prime(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             node = anytree.Node('Signed-factor-prime', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_1 = anytree.Node('Factor-prime', parent=node)
+            anytree.Node('epsilon', parent=node_1)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
@@ -883,7 +921,8 @@ class Parser:
             self.var_prime(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             node = anytree.Node('Var-call-prime', parent=parent)
-            anytree.Node('epsilon', parent=node)
+            node_1 = anytree.Node('Var-prime', parent=node)
+            anytree.Node('epsilon', parent=node_1)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
