@@ -28,7 +28,7 @@ class Parser:
                                                           self.lookahead_lexeme) in expected_token[1]):
             anytree.Node('(' + self.lookahead_type + ', ' + str(self.lookahead_lexeme) + ')', parent=parent)
             self.next()
-        else:
+        elif self.lookahead_lexeme is not None:
             self.errors += '#{0} : syntax error, missing {1}\n'.format(self.scanner.line, expected_token[1])
 
     # program ->  declaration-list $

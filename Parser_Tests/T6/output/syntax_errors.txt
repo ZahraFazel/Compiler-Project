@@ -15,4 +15,3 @@
 #6 : syntax error, illegal ;
 #7 : syntax error, illegal }
 #8 : syntax error, unexpected EOF
-#8 : syntax error, missing [')']
