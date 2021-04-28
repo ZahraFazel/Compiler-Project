@@ -29,7 +29,7 @@ class Parser:
             anytree.Node('(' + self.lookahead_type + ', ' + str(self.lookahead_lexeme) + ')', parent=parent)
             self.next()
         else:
-            self.errors += '#' + str(self.scanner.line) + ' : syntax error, missing ' + expected_token[1] + '\n'
+            self.errors += '#{0} : syntax error, missing {1}\n'.format(self.scanner.line, expected_token[1])
 
     # program ->  declaration-list $
     def program(self):
@@ -482,7 +482,7 @@ class Parser:
             self.var_zegond(node)
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', '(', '{', 'break', 'if', 'while',
                                                                                'return', 'for', '+', '-']:
-            node = anytree.Node('Var zegond', parent=parent)
+            node = anytree.Node('Var-zegond', parent=parent)
             anytree.Node('epsilon', parent=node)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
@@ -872,7 +872,7 @@ class Parser:
             node = anytree.Node('Signed-factor-zegond', parent=parent)
             self.factor_zegond(node)
         elif self.lookahead_lexeme in ['+', '-']:
-            node = anytree.Node('Signed-factor', parent=parent)
+            node = anytree.Node('Signed-factor-zegond', parent=parent)
             self.match(node, ('SYMBOL', ['+', '-']))
             self.factor(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
@@ -977,7 +977,7 @@ class Parser:
             self.expression(node)
             self.match(node, ('SYMBOL', [')']))
         elif self.lookahead_type == 'NUM':
-            node = anytree.Node('Factor_zegond', parent=parent)
+            node = anytree.Node('Factor-zegond', parent=parent)
             self.match(node, ('NUM', ['NUM']))
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             self.errors += '#{0} : syntax error, missing factor-zegond\n'.format(self.scanner.line)
@@ -1024,12 +1024,12 @@ class Parser:
     # Arg-list-prime -> , Expression Arg-list-prime | EPSILON
     def arg_list_prime(self, parent):
         if self.lookahead_lexeme == ',':
-            node = anytree.Node('Args-list-prime', parent=parent)
+            node = anytree.Node('Arg-list-prime', parent=parent)
             self.match(node, ('SYMBOL', [',']))
             self.expression(node)
             self.arg_list_prime(node)
         elif self.lookahead_lexeme == ')':
-            node = anytree.Node('Args-list-prime', parent=parent)
+            node = anytree.Node('Arg-list-prime', parent=parent)
             anytree.Node('epsilon', parent=node)
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':

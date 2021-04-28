@@ -1,0 +1,17 @@
+1.	int
+2.	a
+3.	c
+4.	void
+5.	f
+6.	b
+7.	return
+8.	main
+9.	if
+10.	else
+11.	output
+12.	break
+13.	while
+14.	switch
+15.	default
+16.	case
+17.	for

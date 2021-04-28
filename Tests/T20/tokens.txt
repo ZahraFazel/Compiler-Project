@@ -1,0 +1,6 @@
+1.      (SYMBOL, () (ID, x) (SYMBOL, ==) (NUM, 5) (SYMBOL, )) (SYMBOL, {) 
+2.      (ID, haha) (SYMBOL, ;) 
+3.      (SYMBOL, }) 
+4.      (KEYWORD, else) (KEYWORD, if) (SYMBOL, () (ID, x) (SYMBOL, ==) (NUM, 5) (SYMBOL, )) (SYMBOL, {) 
+5.      (ID, hehe) (SYMBOL, ;) 
+6.      (SYMBOL, }) 

@@ -9,18 +9,21 @@ from scanner import Scanner
 
 
 def run(path=''):
-    scanner = Scanner("Parser_Tests/T10/input.txt")
+    input_path = path + '/input.txt' if path != '' else 'input.txt'
+    output_path = path + '/output/' if path != '' else ''
+    scanner = Scanner(input_path)
     parser = Parser(scanner)
-    p_tree = parser.parse()
-    for pre, _, n in anytree.RenderTree(p_tree):
-        print("%s%s " % (pre, n.name))
-    if parser.errors == '':
-        print('There is no syntax error.')
-    print(parser.errors)
-    # input_path = path + '/input.txt' if path != '' else 'input.txt'
-    # # output_path = path + '/output/'
-    # output_path = ''
-    # scanner = Scanner(input_path)
+    parser.parse()
+
+    with open(output_path + 'parse_tree.txt', 'w') as file:
+        for pre, _, n in anytree.RenderTree(parser.parse_tree):
+            file.write("%s%s\n" % (pre, n.name))
+
+    with open(output_path + 'syntax_errors.txt', 'w') as file:
+        if parser.errors == '':
+            file.write('There is no syntax error.')
+        else:
+            file.write(parser.errors)
     # while True:
     #     token_type = scanner.get_next_token()
     #     if token_type[0] == 'EOF':
@@ -57,4 +60,4 @@ def run(path=''):
     #         i += 1
 
 
-run()
+# run()

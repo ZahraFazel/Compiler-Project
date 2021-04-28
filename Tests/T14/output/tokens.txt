@@ -1,0 +1,2 @@
+1.      (KEYWORD, int) (ID, main) (SYMBOL, () (SYMBOL, )) (SYMBOL, {) 
+2.      (SYMBOL, }) 
