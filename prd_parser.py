@@ -29,17 +29,32 @@ class Parser:
             anytree.Node('(' + self.lookahead_type + ', ' + str(self.lookahead_lexeme) + ')', parent=parent)
             self.next()
         elif self.lookahead_lexeme is not None:
-            self.errors += '#{0} : syntax error, missing {1}\n'.format(self.scanner.line, expected_token[1])
+            expected = ''
+            if len(expected_token[1]) == 1:
+                expected = expected_token[1][0]
+            else:
+                for i in range(len(expected_token[1]) - 1):
+                    expected += expected_token[1][i] + ' or '
+                expected += expected_token[1][-1]
+            self.errors += '#{0} : syntax error, missing {1}\n'.format(self.scanner.line, expected)
 
     # program ->  declaration-list $
     def program(self):
         if self.lookahead_lexeme in ['int', 'void']:
             self.parse_tree = anytree.Node('Program', parent=None)
             self.declaration_list(self.parse_tree)
-            if self.lookahead_lexeme is not None:
+            if self.lookahead_lexeme == '$':
                 anytree.Node('$', parent=self.parse_tree)
-        else:
-            self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+            elif self.lookahead_lexeme is not None:
+                self.errors += '#{0} : syntax error, missing $'.format(self.scanner.line)
+        elif self.lookahead_lexeme == '$':
+            self.parse_tree = anytree.Node('Program', parent=None)
+            node = anytree.Node('Declaration-list', parent=self.parse_tree)
+            anytree.Node('epsilon', parent=node)
+            anytree.Node('$', parent=self.parse_tree)
+        elif self.lookahead_lexeme is not None:
+            expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+            self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.program()
 
@@ -57,7 +72,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.declaration_list(parent)
 
@@ -75,7 +91,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.declaration(parent)
 
@@ -91,7 +108,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.declaration_initial(parent)
 
@@ -111,7 +129,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.declaration_prime(parent)
 
@@ -131,7 +150,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.fun_declaration_prime(parent)
 
@@ -157,7 +177,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.var_declaration_prime(parent)
 
@@ -172,7 +193,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.type_specifier(parent)
 
@@ -194,7 +216,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.params(parent)
 
@@ -212,7 +235,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.param_list_void_abtar(parent)
 
@@ -230,7 +254,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.param_list(parent)
 
@@ -246,7 +271,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.param(parent)
 
@@ -263,7 +289,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.param_prime(parent)
 
@@ -283,7 +310,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.compound_stmt(parent)
 
@@ -301,7 +329,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.statement_list(parent)
 
@@ -331,7 +360,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.statement(parent)
 
@@ -354,7 +384,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.expression_stmt(parent)
 
@@ -376,7 +407,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.selection_stmt(parent)
 
@@ -396,7 +428,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.iteration_stmt(parent)
 
@@ -413,7 +446,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.return_stmt(parent)
 
@@ -432,7 +466,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.return_stmt_prime(parent)
 
@@ -452,7 +487,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.for_stmt(parent)
 
@@ -469,7 +505,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.vars(parent)
 
@@ -488,7 +525,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.var_zegond(parent)
 
@@ -505,7 +543,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.var(parent)
 
@@ -524,7 +563,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.expression(parent)
 
@@ -561,7 +601,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.b(parent)
 
@@ -588,7 +629,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.h(parent)
 
@@ -604,7 +646,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.simple_expression_zegond(parent)
 
@@ -631,7 +674,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.signed_factor_prime(parent)
 
@@ -648,7 +692,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.c(parent)
 
@@ -666,7 +711,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.relop(parent)
 
@@ -682,7 +728,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.additive_expression(parent)
 
@@ -706,7 +753,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.additive_expression_prime(parent)
 
@@ -722,7 +770,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.additive_expression_zegond(parent)
 
@@ -740,7 +789,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.d(parent)
 
@@ -755,7 +805,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.addop(parent)
 
@@ -771,7 +822,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.term(parent)
 
@@ -792,7 +844,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.term_prime(parent)
 
@@ -808,7 +861,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.term_zegond(parent)
 
@@ -826,7 +880,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.g(parent)
 
@@ -845,7 +900,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.signed_factor(parent)
 
@@ -862,7 +918,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.signed_factor_prime(parent)
 
@@ -881,7 +938,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.signed_factor_zegond(parent)
 
@@ -905,7 +963,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.factor(parent)
 
@@ -927,7 +986,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.var_call_prime(parent)
 
@@ -947,7 +1007,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.var_prime(parent)
 
@@ -965,7 +1026,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.factor_prime(parent)
 
@@ -985,7 +1047,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.factor_zegond(parent)
 
@@ -1001,7 +1064,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.args(parent)
 
@@ -1017,7 +1081,8 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.arg_list(parent)
 
@@ -1035,6 +1100,7 @@ class Parser:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)
             else:
-                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, self.lookahead_lexeme)
+                expected = self.lookahead_type if self.lookahead_type in ['ID', 'NUM'] else self.lookahead_lexeme
+                self.errors += '#{0} : syntax error, illegal {1}\n'.format(self.scanner.line, expected)
             self.next()
             self.arg_list_prime(parent)

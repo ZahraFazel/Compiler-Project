@@ -16,18 +16,18 @@ for file in glob('D:/University/Compiler Design/Project/Parser_Tests/*/input.txt
     print('Test ' + folder + ':')
 
     with open(input_path + '/parse_tree.txt', 'r') as f:
-        test_tokens = f.read().replace(' ', '').replace('\t', '').replace('\n', '')
+        test_tokens = f.read().replace(' ', '').replace('\t', '').replace('\n', '').lower()
     with open(input_path + '/output/parse_tree.txt', 'r') as f:
-        our_tokens = f.read().replace(' ', '').replace('\t', '').replace('\n', '')
+        our_tokens = f.read().replace(' ', '').replace('\t', '').replace('\n', '').lower()
     if test_tokens == our_tokens:
         print('Test Parse Tree: PASS')
     else:
         print('Test Parse Tree: FAIL')
 
     with open(input_path + '/syntax_errors.txt', 'r') as f:
-        test_symbol_table = f.read().replace(' ', '').replace('\t', '').replace('\n', '')
+        test_symbol_table = f.read().replace(' ', '').replace('\t', '').replace('\n', '').lower()
     with open(input_path + '/output/syntax_errors.txt', 'r') as f:
-        our_symbol_table = f.read().replace(' ', '').replace('\t', '').replace('\n', '')
+        our_symbol_table = f.read().replace(' ', '').replace('\t', '').replace('\n', '').lower()
     if test_symbol_table == our_symbol_table:
         print('Test Syntax Errors: PASS')
     else:

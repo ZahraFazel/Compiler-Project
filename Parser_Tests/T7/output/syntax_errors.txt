@@ -1,1 +1,1 @@
-#9 : syntax error, missing ['else']
+#9 : syntax error, missing else

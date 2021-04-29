@@ -1,2 +1,0 @@
-1.      (ح, Invalid input) (س, Invalid input) (ن, Invalid input) (ح, Invalid input) (س, Invalid input) (ی, Invalid input) (ن, Invalid input) 
-2.      (ح, Invalid input) (س, Invalid input) (ن, Invalid input) (ی, Invalid input) (ن, Invalid input) 

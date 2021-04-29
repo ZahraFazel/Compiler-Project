@@ -1,6 +1,0 @@
-using namespace std;
-
-/ what is this
-/this is that
-that is 345y
-very 345yyy

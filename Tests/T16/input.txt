@@ -1,7 +1,0 @@
-int main() {
-    // l$t m! us& bad chars h@h@
-
-    /* may I use them here too?
-    l$t m! us& bad chars h@h@
-    */
-}

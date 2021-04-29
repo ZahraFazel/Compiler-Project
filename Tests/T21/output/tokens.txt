@@ -1,8 +1,0 @@
-1.      (NUM, 4) (SYMBOL, +) 
-5.      (NUM, 04) (SYMBOL, ,) 
-6.      (NUM, 44) 
-7.      (NUM, 44) 
-8.      (NUM, 44) 
-10.     (NUM, 4) (NUM, 5) 
-11.     (NUM, 4) (NUM, 5) 
-12.     (NUM, 4) 

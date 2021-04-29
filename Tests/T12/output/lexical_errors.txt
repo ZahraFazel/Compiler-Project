@@ -1,4 +1,0 @@
-3.      (/, Invalid input) 
-4.      (/, Invalid input) 
-5.      (345y, Invalid number) 
-6.      (345y, Invalid number) 

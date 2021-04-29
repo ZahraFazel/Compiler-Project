@@ -1,3 +1,0 @@
-1.      (KEYWORD, int) (ID, bain) (SYMBOL, () (SYMBOL, )) (SYMBOL, {) 
-2.      (ID, t) 
-3.      (SYMBOL, }) 

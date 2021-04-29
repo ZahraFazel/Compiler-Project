@@ -16,8 +16,9 @@ def run(path=''):
     parser.parse()
 
     with open(output_path + 'parse_tree.txt', 'w') as file:
-        for pre, _, n in anytree.RenderTree(parser.parse_tree):
-            file.write("%s%s\n" % (pre, n.name))
+        if parser.parse_tree is not None:
+            for pre, _, n in anytree.RenderTree(parser.parse_tree):
+                file.write("%s%s\n" % (pre, n.name))
 
     with open(output_path + 'syntax_errors.txt', 'w') as file:
         if parser.errors == '':
@@ -60,4 +61,4 @@ def run(path=''):
     #         i += 1
 
 
-# run()
+run()

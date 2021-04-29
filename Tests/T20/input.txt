@@ -1,6 +1,0 @@
-if$ (x == 5) {
-    haha;
-}
-else if (x ==! 5) {
-    hehe;
-}
