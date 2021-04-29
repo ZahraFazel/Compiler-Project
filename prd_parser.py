@@ -26,7 +26,7 @@ class Parser:
         if expected_token[0] == self.lookahead_type and ((expected_token[0] in ['ID', 'NUM']) or
                                                          (expected_token[0] in ['KEYWORD', 'SYMBOL'] and
                                                           self.lookahead_lexeme) in expected_token[1]):
-            anytree.Node('(' + self.lookahead_type + ', ' + str(self.lookahead_lexeme) + ')', parent=parent)
+            anytree.Node('(' + self.lookahead_type + ', ' + str(self.lookahead_lexeme) + ') ', parent=parent)
             self.next()
         elif self.lookahead_lexeme is not None:
             expected = ''
@@ -976,7 +976,7 @@ class Parser:
             self.args(node)
             self.match(node, ('SYMBOL', [')']))
         elif self.lookahead_lexeme == '[':
-            node = anytree.Node('Var call prime', parent=parent)
+            node = anytree.Node('Var-call-prime', parent=parent)
             self.var_prime(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             node = anytree.Node('Var-call-prime', parent=parent)
