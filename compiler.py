@@ -61,4 +61,8 @@ def run(path=''):
     #         i += 1
 
 
-run()
+# run()
+
+scanner = Scanner("Parser_Tests/T1/input.txt")
+parser = Parser(scanner)
+parser.parse()

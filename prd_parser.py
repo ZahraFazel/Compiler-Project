@@ -1,4 +1,5 @@
 import anytree
+from CodeGeneration import CodeGeneration
 
 
 class Parser:
@@ -9,6 +10,7 @@ class Parser:
         self.scanner = scr
         self.parse_tree = None
         self.errors = ''
+        self.code_generator = CodeGeneration()
 
     def parse(self):
         self.next()
@@ -101,6 +103,8 @@ class Parser:
         if self.lookahead_lexeme in ['int', 'void']:
             node = anytree.Node('Declaration-initial', parent=parent)
             self.type_specifier(node)
+            # print(self.lookahead_lexeme)
+            self.code_generator.pid(self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
         elif self.lookahead_lexeme in [';', '[', '(', ')', ',']:
             self.errors += '#{0} : syntax error, missing declaration-initial\n'.format(self.scanner.line)
@@ -160,11 +164,14 @@ class Parser:
         if self.lookahead_lexeme == ';':
             node = anytree.Node('Var-declaration-prime', parent=parent)
             self.match(node, ('SYMBOL', [';']))
+            self.code_generator.pop()
         elif self.lookahead_lexeme == '[':
             node = anytree.Node('Var-declaration-prime', parent=parent)
             self.match(node, ('SYMBOL', ['[']))
+            self.code_generator.pnum(self.lookahead_lexeme)
             self.match(node, ('NUM', 'NUM'))
             self.match(node, ('SYMBOL', [']']))
+            self.code_generator.save_array()
             self.match(node, ('SYMBOL', [';']))
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in ['(', '{', '}', 'int', 'void', 'break',
                                                                                'if', 'while', 'return', 'for', '+', '-',
@@ -203,6 +210,7 @@ class Parser:
         if self.lookahead_lexeme == 'int':
             node = anytree.Node('Params', parent=parent)
             self.match(node, ('KEYWORD', ['int']))
+            self.code_generator.pid(self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
             self.param_prime(node)
             self.param_list(node)
@@ -225,6 +233,7 @@ class Parser:
     def param_list_void_abtar(self, parent):
         if self.lookahead_type == 'ID':
             node = anytree.Node('Param-list-void-abtar', parent=parent)
+            self.code_generator.pid(self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
             self.param_prime(node)
             self.param_list(node)
@@ -371,6 +380,7 @@ class Parser:
             node = anytree.Node('Expression-stmt', parent=parent)
             self.expression(node)
             self.match(node, ('SYMBOL', [';']))
+            self.code_generator.pop()
         elif self.lookahead_lexeme == 'break':
             node = anytree.Node('Expression-stmt', parent=parent)
             self.match(node, ('KEYWORD', ['break']))
@@ -397,9 +407,12 @@ class Parser:
             self.match(node, ('SYMBOL', ['(']))
             self.expression(node)
             self.match(node, ('SYMBOL', [')']))
+            self.code_generator.save()
             self.statement(node)
             self.match(node, ('KEYWORD', ['else']))
+            self.code_generator.jpf()
             self.statement(node)
+            self.code_generator.jp()
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', '(', '{', '}', 'break', 'else',
                                                                                'while', 'return', 'for', '+', '-']:
             self.errors += '#{0} : syntax error, missing selection-stmt\n'.format(self.scanner.line)
@@ -418,9 +431,12 @@ class Parser:
             node = anytree.Node('Iteration-stmt', parent=parent)
             self.match(node, ('KEYWORD', ['while']))
             self.match(node, ('SYMBOL', ['(']))
+            self.code_generator.label()
             self.expression(node)
             self.match(node, ('SYMBOL', [')']))
+            self.code_generator.save()
             self.statement(node)
+            self.code_generator.while_stmt()
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', '(', '{', '}', 'break', 'else',
                                                                                'if', 'return', 'for', '+', '-']:
             self.errors += '#{0} : syntax error, missing iteration-stmt\n'.format(self.scanner.line)
@@ -555,6 +571,7 @@ class Parser:
             self.simple_expression_zegond(node)
         elif self.lookahead_type == 'ID':
             node = anytree.Node('Expression', parent=parent)
+            self.code_generator.pid(self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
             self.b(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',']:
@@ -574,11 +591,13 @@ class Parser:
             node = anytree.Node('B', parent=parent)
             self.match(node, ('SYMBOL', ['=']))
             self.expression(node)
+            self.code_generator.assign()
         elif self.lookahead_lexeme == '[':
             node = anytree.Node('B', parent=parent)
             self.match(node, ('SYMBOL', ['[']))
             self.expression(node)
             self.match(node, ('SYMBOL', [']']))
+            self.code_generator.address_array()
             self.h(node)
         elif self.lookahead_lexeme in ['(', '<', '==', '+', '-', '*']:
             node = anytree.Node('B', parent=parent)
@@ -612,6 +631,7 @@ class Parser:
             node = anytree.Node('H', parent=parent)
             self.match(node, ('SYMBOL', ['=']))
             self.expression(node)
+            self.code_generator.assign()
         elif self.lookahead_lexeme in ['<', '==', '+', '-', '*']:
             node = anytree.Node('H', parent=parent)
             self.g(node)
@@ -685,6 +705,7 @@ class Parser:
             node = anytree.Node('C', parent=parent)
             self.relop(node)
             self.additive_expression(node)
+            self.code_generator.relop()
         elif self.lookahead_lexeme in [';', ']', ')', ',']:
             node = anytree.Node('C', parent=parent)
             anytree.Node('epsilon', parent=node)
@@ -701,9 +722,11 @@ class Parser:
     def relop(self, parent):
         if self.lookahead_lexeme == '==':
             node = anytree.Node('Relop', parent=parent)
+            self.code_generator.relop_sign()
             self.match(node, ('SYMBOL', ['==']))
         elif self.lookahead_lexeme == '<':
             node = anytree.Node('Relop', parent=parent)
+            self.code_generator.relop_sign()
             self.match(node, ('SYMBOL', ['<']))
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in ['(', '+', '-']:
             self.errors += '#{0} : syntax error, missing relop\n'.format(self.scanner.line)
@@ -781,6 +804,7 @@ class Parser:
             node = anytree.Node('D', parent=parent)
             self.addop(node)
             self.term(node)
+            self.code_generator.add()
             self.d(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==']:
             node = anytree.Node('D', parent=parent)
@@ -798,6 +822,7 @@ class Parser:
     def addop(self, parent):
         if self.lookahead_lexeme in ['+', '-']:
             node = anytree.Node('Addop', parent=parent)
+            self.code_generator.sign()
             self.match(node, ('SYMBOL', ['+', '-']))
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in ['(', '+', '-']:
             self.errors += '#{0} : syntax error, missing addop\n'.format(self.scanner.line)
@@ -872,6 +897,7 @@ class Parser:
             node = anytree.Node('G', parent=parent)
             self.match(node, ('SYMBOL', ['*']))
             self.signed_factor(node)
+            self.code_generator.mult()
             self.g(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-']:
             node = anytree.Node('G', parent=parent)
@@ -892,8 +918,10 @@ class Parser:
             self.factor(node)
         elif self.lookahead_lexeme in ['+', '-']:
             node = anytree.Node('Signed-factor', parent=parent)
+            self.code_generator.sign()
             self.match(node, ('SYMBOL', ['+', '-']))
             self.factor(node)
+            self.code_generator.signed_num()
         elif self.lookahead_lexeme in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
             self.errors += '#{0} : syntax error, missing signed-factor\n'.format(self.scanner.line)
         elif self.lookahead_lexeme is not None:
@@ -930,8 +958,10 @@ class Parser:
             self.factor_zegond(node)
         elif self.lookahead_lexeme in ['+', '-']:
             node = anytree.Node('Signed-factor-zegond', parent=parent)
+            self.code_generator.sign()
             self.match(node, ('SYMBOL', ['+', '-']))
             self.factor(node)
+            self.code_generator.signed_num()
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             self.errors += '#{0} : syntax error, missing signed-factor-zegond\n'.format(self.scanner.line)
         elif self.lookahead_lexeme is not None:
@@ -952,10 +982,12 @@ class Parser:
             self.match(node, ('SYMBOL', [')']))
         elif self.lookahead_type == 'ID':
             node = anytree.Node('Factor', parent=parent)
+            self.code_generator.pid(self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
             self.var_call_prime(node)
         elif self.lookahead_type == 'NUM':
             node = anytree.Node('Factor', parent=parent)
+            self.code_generator.pnum(self.lookahead_lexeme)
             self.match(node, ('NUM', ['NUM']))
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             self.errors += '#{0} : syntax error, missing factor\n'.format(self.scanner.line)
@@ -998,6 +1030,7 @@ class Parser:
             self.match(node, ('SYMBOL', ['[']))
             self.expression(node)
             self.match(node, ('SYMBOL', [']']))
+            self.code_generator.address_array()
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', ']', '(', ')', ',', '{', 'break',
                                                                                'if', 'while', 'return', 'for', '<',
                                                                                '==', '+', '-', '*']:
@@ -1019,6 +1052,7 @@ class Parser:
             self.match(node, ('SYMBOL', ['(']))
             self.args(node)
             self.match(node, ('SYMBOL', [')']))
+            self.code_generator.output()
         elif self.lookahead_lexeme in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
             node = anytree.Node('Factor-prime', parent=parent)
             anytree.Node('epsilon', parent=node)
@@ -1040,6 +1074,7 @@ class Parser:
             self.match(node, ('SYMBOL', [')']))
         elif self.lookahead_type == 'NUM':
             node = anytree.Node('Factor-zegond', parent=parent)
+            self.code_generator.pnum(self.lookahead_lexeme)
             self.match(node, ('NUM', ['NUM']))
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             self.errors += '#{0} : syntax error, missing factor-zegond\n'.format(self.scanner.line)
