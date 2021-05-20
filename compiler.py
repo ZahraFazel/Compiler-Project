@@ -63,6 +63,6 @@ def run(path=''):
 
 # run()
 
-scanner = Scanner("Parser_Tests/T1/input.txt")
+scanner = Scanner("Code_Generation_Tests/T1/input.txt")
 parser = Parser(scanner)
 parser.parse()

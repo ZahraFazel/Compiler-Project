@@ -3,12 +3,12 @@ from utils import Stack
 
 class CodeGeneration:
     def __init__(self):
-        self.index = 1
+        self.index = 0
         self.ss = Stack()
         self.symbol_table = Stack()
         self.scope_stack = Stack().push((0, None))
-        self.pb = [0] * 10000
-        self.data_index = 2000
+        self.pb = [None] * 10000
+        self.data_index = 500
         self.temp_index = 8000
         self.jmp_position_index = 7000
         # self.arg_index = 8000
@@ -51,10 +51,8 @@ class CodeGeneration:
 
     def print_pb(self):
         for ind, x in enumerate(self.pb):
-            if x != 0:
+            if not x:
                 print(ind, x, sep='\t')
-
-    print()
 
     def get_dict_by_address(self, address):
         for x in self.symbol_table.stack:
@@ -84,30 +82,42 @@ class CodeGeneration:
 
     def find_address(self, token):
         addr = None
+        temp = None
         for x in self.symbol_table.stack:
             if x[0] == token:
                 addr = x[1]
+                temp = 'second'
         if not addr:
             addr = self.data_index
             print('symbol table')
             self.symbol_table.push((token, self.data_index))
             self.data_index += 4
-        return addr
+            temp = 'first'
+        return addr, temp
 
     def pid(self, token):
-        p = self.find_address(token)
+        print("############ pid")
+        if token == 'output':
+            return
+        p, temp = self.find_address(token)
         self.ss.push(p)
-        # print(p)
+        if temp == 'first':
+            self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(0, self.ss.top())
+            self.index += 1
+        print(token, self.pb)
         # print(self.ss.stack)
         # print(self.symbol_table.stack)
 
     def pop(self):
-        self.ss.pop(1)
+        print("############ pop")
+        self.ss.pop()
 
     def pnum(self, token):
-        self.ss.push(int(token))
+        print("############ pnum")
+        self.ss.push('#{}'.format(token))
 
     def save_array(self):
+        print("############ save array")
         array_size = self.ss.get_from_top(0)
         name = self.symbol_table.get_from_top(0)
         self.symbol_table.pop(1)
@@ -116,43 +126,100 @@ class CodeGeneration:
         self.ss.pop(2)
 
     def save(self):
-        pass
+        print("############ save")
+        # print("hel", self.index)
+        self.ss.push(self.index)
+        self.index += 1
 
     def jpf(self):
-        pass
+        print("############ jpf")
+        print(self.ss.stack)
+        self.pb[self.ss.top()] = '(JPF, {}, {}, )'.format(self.ss.get_from_top(1), self.index + 1)
+        print(self.pb)
+        self.ss.pop(2)
+        self.ss.push(self.index)
+        self.index += 1
 
     def jp(self):
-        pass
+        print("############ jp")
+        self.pb[self.ss.top()] = '(JP, {}, , )'.format(self.index)
+        print(self.pb)
+        self.ss.pop()
 
     def label(self):
-        pass
+        print("############ label")
+        self.ss.push(self.index)
 
     def while_stmt(self):
-        pass
+        print("############ while")
+        self.pb[self.ss.top()] = '(JPF, {}, {}, )'.format(self.ss.get_from_top(1), self.index + 1)
+        self.pb[self.index] = '(JP, {}, , )'.format(self.ss.get_from_top(2))
+        print(self.pb)
+        self.index += 1
+        self.ss.pop(3)
 
     def assign(self):
-        pass
+        print("############ asign")
+        # print("hello", self.ss.top())
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.ss.top(), self.ss.get_from_top(1))
+        print(self.pb)
+        self.index += 1
+        self.ss.pop(2)
 
     def address_array(self):
+        print("############ address array")
         pass
 
     def relop(self):
-        pass
+        print("############ relop")
+        addr = self.get_temp()
+        if self.ss.get_from_top(1) == '<':
+            self.pb[self.index] = '(LT, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(2), addr)
+        elif self.ss.get_from_top(1) == '==':
+            self.pb[self.index] = '(EQ, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(2), addr)
+        print(self.pb)
+        self.index += 1
+        self.ss.pop(3)
+        self.ss.push(addr)
 
-    def relop_sign(self):
-        pass
+    def operator(self, token):
+        print("############ operator")
+        self.ss.push(token)
 
-    def add(self):
-        pass
+    # def relop_sign(self):
+    #     print("############ relop sign")
+    #     pass
 
-    def sign(self):
-        pass
+    def add_or_sub(self):
+        print("############ add")
+        t = self.get_temp()
+        if self.ss.get_from_top(1) == '+':
+            self.pb[self.index] = '(ADD, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(2), t)
+        if self.ss.get_from_top(1) == '-':
+            self.pb[self.index] = '(SUB, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(2), t)
+        print(self.pb)
+        self.index += 1
+        self.ss.pop(3)
+        self.ss.push(t)
 
     def mult(self):
-        pass
+        print("############ mult")
+        t = self.get_temp()
+        self.pb[self.index] = '(MULT, {}, {}, {})'.format(self.ss.get_from_top(0), self.ss.get_from_top(1), t)
+        print(self.pb)
+        self.index += 1
+        self.ss.pop(2)
+        self.ss.push(t)
 
     def signed_num(self):
-        pass
+        print("############ signed num")
+        addr = self.get_temp()
+        self.pb[self.index] = '(SUB, #0, {}, {})'.format(self.ss.pop(), addr)
+        self.index += 1
+        self.ss.push(addr)
 
     def output(self):
-        pass
+        print("############ output")
+        self.pb[self.index] = '(PRINT, {}, , )'.format(self.ss.top())
+        self.index += 1
+        print(self.pb)

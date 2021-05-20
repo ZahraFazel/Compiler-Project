@@ -163,8 +163,8 @@ class Parser:
     def var_declaration_prime(self, parent):
         if self.lookahead_lexeme == ';':
             node = anytree.Node('Var-declaration-prime', parent=parent)
+            # self.code_generator.pop()
             self.match(node, ('SYMBOL', [';']))
-            self.code_generator.pop()
         elif self.lookahead_lexeme == '[':
             node = anytree.Node('Var-declaration-prime', parent=parent)
             self.match(node, ('SYMBOL', ['[']))
@@ -703,6 +703,7 @@ class Parser:
     def c(self, parent):
         if self.lookahead_lexeme in ['<', '==']:
             node = anytree.Node('C', parent=parent)
+            self.code_generator.operator(self.lookahead_lexeme)
             self.relop(node)
             self.additive_expression(node)
             self.code_generator.relop()
@@ -722,11 +723,11 @@ class Parser:
     def relop(self, parent):
         if self.lookahead_lexeme == '==':
             node = anytree.Node('Relop', parent=parent)
-            self.code_generator.relop_sign()
+            # self.code_generator.relop_sign()
             self.match(node, ('SYMBOL', ['==']))
         elif self.lookahead_lexeme == '<':
             node = anytree.Node('Relop', parent=parent)
-            self.code_generator.relop_sign()
+            # self.code_generator.relop_sign()
             self.match(node, ('SYMBOL', ['<']))
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in ['(', '+', '-']:
             self.errors += '#{0} : syntax error, missing relop\n'.format(self.scanner.line)
@@ -802,9 +803,10 @@ class Parser:
     def d(self, parent):
         if self.lookahead_lexeme in ['+', '-']:
             node = anytree.Node('D', parent=parent)
+            self.code_generator.operator(self.lookahead_lexeme)
             self.addop(node)
             self.term(node)
-            self.code_generator.add()
+            self.code_generator.add_or_sub()
             self.d(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==']:
             node = anytree.Node('D', parent=parent)
@@ -822,7 +824,6 @@ class Parser:
     def addop(self, parent):
         if self.lookahead_lexeme in ['+', '-']:
             node = anytree.Node('Addop', parent=parent)
-            self.code_generator.sign()
             self.match(node, ('SYMBOL', ['+', '-']))
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in ['(', '+', '-']:
             self.errors += '#{0} : syntax error, missing addop\n'.format(self.scanner.line)
@@ -913,15 +914,17 @@ class Parser:
 
     # Signed-factor -> + Factor | - Factor | Factor
     def signed_factor(self, parent):
+        flag = self.lookahead_lexeme == '-'
         if self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme == '(':
             node = anytree.Node('Signed-factor', parent=parent)
             self.factor(node)
         elif self.lookahead_lexeme in ['+', '-']:
             node = anytree.Node('Signed-factor', parent=parent)
-            self.code_generator.sign()
+            # self.code_generator.sign()
             self.match(node, ('SYMBOL', ['+', '-']))
             self.factor(node)
-            self.code_generator.signed_num()
+            if flag:
+                self.code_generator.signed_num()
         elif self.lookahead_lexeme in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
             self.errors += '#{0} : syntax error, missing signed-factor\n'.format(self.scanner.line)
         elif self.lookahead_lexeme is not None:
@@ -953,15 +956,17 @@ class Parser:
 
     # Signed-factor-zegond -> + Factor | - Factor | Factor-zegond
     def signed_factor_zegond(self, parent):
+        flag = self.lookahead_lexeme == '-'
         if self.lookahead_type == 'NUM' or self.lookahead_lexeme == '(':
             node = anytree.Node('Signed-factor-zegond', parent=parent)
             self.factor_zegond(node)
         elif self.lookahead_lexeme in ['+', '-']:
             node = anytree.Node('Signed-factor-zegond', parent=parent)
-            self.code_generator.sign()
+            # self.code_generator.sign()
             self.match(node, ('SYMBOL', ['+', '-']))
             self.factor(node)
-            self.code_generator.signed_num()
+            if flag:
+                self.code_generator.signed_num()
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             self.errors += '#{0} : syntax error, missing signed-factor-zegond\n'.format(self.scanner.line)
         elif self.lookahead_lexeme is not None:
