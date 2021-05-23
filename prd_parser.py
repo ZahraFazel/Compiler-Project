@@ -1,5 +1,5 @@
 import anytree
-from CodeGeneration import CodeGeneration
+from code_generation import CodeGeneration
 
 
 class Parser:
@@ -163,7 +163,7 @@ class Parser:
     def var_declaration_prime(self, parent):
         if self.lookahead_lexeme == ';':
             node = anytree.Node('Var-declaration-prime', parent=parent)
-            # self.code_generator.pop()
+            self.code_generator.pop()
             self.match(node, ('SYMBOL', [';']))
         elif self.lookahead_lexeme == '[':
             node = anytree.Node('Var-declaration-prime', parent=parent)

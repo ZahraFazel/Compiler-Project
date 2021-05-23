@@ -4,13 +4,7 @@ void main(void){
 	int b;
 	a = 10;
 	b = 0;
-	if (b == 2){
-			output (a);
-		}
-		else{
-			output(b);
-			}
-	/* while (b < a){
+	while (b < a){
 		b = b + 1;
 		if (b == 2){
 			output (a);
@@ -22,5 +16,5 @@ void main(void){
 				output(b);
 			}
 		}
-	}*/
+	}
 }

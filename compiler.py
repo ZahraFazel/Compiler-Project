@@ -11,20 +11,25 @@ from scanner import Scanner
 def run(path=''):
     input_path = path + '/input.txt' if path != '' else 'input.txt'
     output_path = path + '/output/' if path != '' else ''
+    # output_path = path
     scanner = Scanner(input_path)
     parser = Parser(scanner)
     parser.parse()
 
-    with open(output_path + 'parse_tree.txt', 'w') as file:
-        if parser.parse_tree is not None:
-            for pre, _, n in anytree.RenderTree(parser.parse_tree):
-                file.write("%s%s\n" % (pre, n.name))
-
-    with open(output_path + 'syntax_errors.txt', 'w') as file:
-        if parser.errors == '':
-            file.write('There is no syntax error.')
-        else:
-            file.write(parser.errors)
+    with open(output_path + '/output.txt', 'w') as file:
+        for idx, l in enumerate(parser.code_generator.pb):
+            if l is not None:
+                file.write('{}\t{}\n'.format(idx, l))
+    # with open(output_path + 'parse_tree.txt', 'w') as file:
+    #     if parser.parse_tree is not None:
+    #         for pre, _, n in anytree.RenderTree(parser.parse_tree):
+    #             file.write("%s%s\n" % (pre, n.name))
+    #
+    # with open(output_path + 'syntax_errors.txt', 'w') as file:
+    #     if parser.errors == '':
+    #         file.write('There is no syntax error.')
+    #     else:
+    #         file.write(parser.errors)
     # while True:
     #     token_type = scanner.get_next_token()
     #     if token_type[0] == 'EOF':
@@ -61,8 +66,4 @@ def run(path=''):
     #         i += 1
 
 
-# run()
-
-scanner = Scanner("Code_Generation_Tests/T1/input.txt")
-parser = Parser(scanner)
-parser.parse()
+# run("CodeGeneration_Tests/T1")

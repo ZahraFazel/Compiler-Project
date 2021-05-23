@@ -7,33 +7,30 @@ class CodeGeneration:
         self.ss = Stack()
         self.symbol_table = Stack()
         self.scope_stack = Stack().push((0, None))
-        self.pb = [None] * 10000
+        self.pb = [None] * 200
         self.data_index = 500
-        self.temp_index = 8000
+        self.temp_index = 1000
         self.jmp_position_index = 7000
-        # self.arg_index = 8000
-        # self.return_values_index = 9000
         self.current_arg = 0
         self.in_rhs = False
-        # self.semantic_errors = []
         self.global_variables = []
 
-    def get_address_by_token(self, label):
-        for symcell in self.symbol_table.stack:
-            if symcell['token'] == label:
-                if self.in_rhs and symcell['type'] == 'void':
-                    raise Exception('using return value of void function: {}.'.format(label))
-                return symcell['addr']
-        raise Exception("\'{}\' is not defined.".format(label))
+    # def get_address_by_token(self, label):
+    #     for symcell in self.symbol_table.stack:
+    #         if symcell['token'] == label:
+    #             if self.in_rhs and symcell['type'] == 'void':
+    #                 raise Exception('using return value of void function: {}.'.format(label))
+    #             return symcell['addr']
+    #     raise Exception("\'{}\' is not defined.".format(label))
 
-    def get_arg_address_by_token_and_num(self, func, num):
-        for symcell in self.symbol_table.stack:
-            if symcell['token'] == func and symcell.get('is_func', False):
-                if num < len(symcell['args']):
-                    return symcell['args'][num]
-                else:
-                    raise Exception('Mismatch in numbers of arguments of \'{}\'.'.format(func))
-        raise Exception("\'{}\' is not defined.".format(func))
+    # def get_arg_address_by_token_and_num(self, func, num):
+    #     for symcell in self.symbol_table.stack:
+    #         if symcell['token'] == func and symcell.get('is_func', False):
+    #             if num < len(symcell['args']):
+    #                 return symcell['args'][num]
+    #             else:
+    #                 raise Exception('Mismatch in numbers of arguments of \'{}\'.'.format(func))
+    #     raise Exception("\'{}\' is not defined.".format(func))
 
     def get_temp(self):
         res = self.temp_index
@@ -49,31 +46,31 @@ class CodeGeneration:
     #         pass
     #     self.print_pb()
 
-    def print_pb(self):
-        for ind, x in enumerate(self.pb):
-            if not x:
-                print(ind, x, sep='\t')
+    # def print_pb(self):
+    #     for ind, x in enumerate(self.pb):
+    #         if not x:
+    #             print(ind, x, sep='\t')
 
-    def get_dict_by_address(self, address):
-        for x in self.symbol_table.stack:
-            addr = x.get('addr', None)
-            if not addr:
-                continue
-            if addr == address or addr == int(address):
-                return x
+    # def get_dict_by_address(self, address):
+    #     for x in self.symbol_table.stack:
+    #         addr = x.get('addr', None)
+    #         if not addr:
+    #             continue
+    #         if addr == address or addr == int(address):
+    #             return x
 
-    def get_dict_by_token(self, token):
-        for x in self.symbol_table.stack:
-            if x['token'] == token:
-                return x
-        raise Exception("\'{}\' is not defined.".format(token))
+    # def get_dict_by_token(self, token):
+    #     for x in self.symbol_table.stack:
+    #         if x['token'] == token:
+    #             return x
+    #     raise Exception("\'{}\' is not defined.".format(token))
 
-    def output_pb(self):
-        with open('in_out/' + 'output.txt', 'w+') as f:
-            for ind, x in enumerate(self.pb):
-                if x != 0:
-                    l = '{}\t{}\n'.format((str(ind)), x)
-                    f.write(l)
+    # def output_pb(self):
+    #     with open('in_out/' + 'output.txt', 'w+') as f:
+    #         for ind, x in enumerate(self.pb):
+    #             if x != 0:
+    #                 l = '{}\t{}\n'.format((str(ind)), x)
+    #                 f.write(l)
 
     def find_temp(self):
         temp = self.temp_index
@@ -122,7 +119,10 @@ class CodeGeneration:
         name = self.symbol_table.get_from_top(0)
         self.symbol_table.pop(1)
         self.symbol_table.push((name[0], name[1], array_size))
-        self.data_index += (array_size - 1) * 4
+        for i in range(int(array_size.replace('#', '')) - 1):
+            self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(0, self.data_index)
+            self.index += 1
+            self.data_index += 4
         self.ss.pop(2)
 
     def save(self):
@@ -159,16 +159,25 @@ class CodeGeneration:
         self.ss.pop(3)
 
     def assign(self):
-        print("############ asign")
+        print("############ assign")
         # print("hello", self.ss.top())
         self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.ss.top(), self.ss.get_from_top(1))
+        temp = self.ss.top()
         print(self.pb)
         self.index += 1
         self.ss.pop(2)
+        self.ss.push(temp)
 
     def address_array(self):
         print("############ address array")
-        pass
+        t = self.get_temp()
+        self.pb[self.index] = '(MULT, {}, #4, {})'.format(self.ss.top(), t)
+        self.ss.pop()
+        self.index += 1
+        self.pb[self.index] = '(ADD, #{}, {}, {}'.format(self.ss.top(), t, t)
+        self.ss.pop()
+        self.index += 1
+        self.ss.push('@' + str(t))
 
     def relop(self):
         print("############ relop")
@@ -186,10 +195,6 @@ class CodeGeneration:
         print("############ operator")
         self.ss.push(token)
 
-    # def relop_sign(self):
-    #     print("############ relop sign")
-    #     pass
-
     def add_or_sub(self):
         print("############ add")
         t = self.get_temp()
@@ -205,7 +210,7 @@ class CodeGeneration:
     def mult(self):
         print("############ mult")
         t = self.get_temp()
-        self.pb[self.index] = '(MULT, {}, {}, {})'.format(self.ss.get_from_top(0), self.ss.get_from_top(1), t)
+        self.pb[self.index] = '(MULT, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(1), t)
         print(self.pb)
         self.index += 1
         self.ss.pop(2)

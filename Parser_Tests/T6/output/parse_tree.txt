@@ -3,12 +3,12 @@ Program
     └── Declaration
         ├── Declaration-initial
         │   ├── Type-specifier
-        │   │   └── (KEYWORD, void)
-        │   └── (ID, main)
+        │   │   └── (KEYWORD, void) 
+        │   └── (ID, main) 
         └── Declaration-prime
             └── Fun-declaration-prime
-                ├── (SYMBOL, ()
+                ├── (SYMBOL, () 
                 └── Params
-                    ├── (KEYWORD, void)
+                    ├── (KEYWORD, void) 
                     └── Param-list-void-abtar
-                        └── (ID, prod)
+                        └── (ID, prod) 
