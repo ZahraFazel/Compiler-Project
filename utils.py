@@ -13,12 +13,12 @@ class Stack:
             raise Exception('pop size bigger than stack size!, {}, {}'.format(self.size, num))
         self.stack = self.stack[:self.size-num]
         self.size -= num
-        print("pop", self.stack)
+        # print("pop", self.stack)
 
     def push(self, key):
         self.stack += [key]
         self.size += 1
-        print("push", self.stack)
+        # print("push", self.stack)
 
     def top(self):
         return self.stack[self.size-1]
