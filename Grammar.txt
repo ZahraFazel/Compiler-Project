@@ -1,91 +1,91 @@
 Program⟶ Declaration_list $
 Declaration_list⟶ Declaration Declaration_list
-Declaration_list⟶
+Declaration_list⟶ ε
 Declaration⟶Declaration_initial Declaration_prime
-Declaration_initial⟶Type_specifier ID
+Declaration_initial⟶Type_specifier #pid ID
 Declaration_prime⟶Fun_declaration_prime
 Declaration_prime⟶Var_declaration_prime
-Var_declaration_prime⟶ ; 
-Var_declaration_prime⟶[ NUM ] ;
+Var_declaration_prime⟶ ; #pop
+Var_declaration_prime⟶[ #pnum NUM ] #save_arr ;
 Fun_declaration_prime⟶ ( Params ) Compound_stmt
 Type_specifier⟶int 
 Type_specifier⟶void
-Params⟶int ID Param_prime Param_list 
+Params⟶int #pid ID Param_prime Param_list
 Params⟶void Param_list_void_abtar
-Param_list_void_abtar⟶ID Param_prime Param_list
-Param_list_void_abtar⟶ 
+Param_list_void_abtar⟶#pid ID Param_prime Param_list
+Param_list_void_abtar⟶ ε
 Param_list⟶, Param Param_list 
-Param_list⟶
+Param_list⟶ ε
 Param⟶Declaration_initial Param_prime
 Param_prime⟶ [ ] 
-Param_prime⟶ 
+Param_prime⟶ ε
 Compound_stmt⟶{ Declaration_list Statement_list }
 Statement_list⟶Statement Statement_list 
-Statement_list⟶
+Statement_list⟶ ε
 Statement⟶Expression_stmt
 Statement⟶Compound_stmt
 Statement⟶Selection_stmt
 Statement⟶Iteration_stmt
 Statement⟶Return_stmt
 Statement⟶For_stmt
-Expression_stmt⟶Expression ; 
+Expression_stmt⟶Expression ; #pop
 Expression_stmt⟶break ; 
 Expression_stmt⟶;
-Selection_stmt⟶if ( Expression ) Statement else Statement
-Iteration_stmt⟶while ( Expression ) Statement
+Selection_stmt⟶if ( Expression ) #save Statement else #jpf Statement #jp
+Iteration_stmt⟶while ( #label Expression ) #save Statement #while
 Return_stmt⟶ return Return_stmt_prime
 Return_stmt_prime⟶; 
 Return_stmt_prime⟶Expression ;
 For_stmt⟶ for ID = Vars Statement
 Vars⟶Var Var_zegond
 Var_zegond⟶, Var Var_zegond 
-Var_zegond⟶
+Var_zegond⟶ ε
 Var⟶ID Var_prime
 Expression⟶ Simple_expression_zegond 
-Expression⟶ID B
-B⟶= Expression 
-B⟶[ Expression ] H 
+Expression⟶ #pid ID B
+B⟶= Expression #assign
+B⟶[ Expression ] #address_array H
 B⟶Simple_expression_prime
-H⟶= Expression
+H⟶= Expression #assign
 H⟶G D C
 Simple_expression_zegond⟶Additive_expression_zegond C
 Simple_expression_prime⟶ Additive_expression_prime C
-C⟶Relop Additive_expression 
-C⟶
-Relop⟶< 
-Relop⟶==
+C⟶Relop Additive_expression #relop
+C⟶ ε
+Relop⟶ #relop_sign <
+Relop⟶ #relop_sign ==
 Additive_expression⟶ Term D
 Additive_expression_prime⟶ Term_prime D
 Additive_expression_zegond⟶ Term_zegond D
-D⟶ Addop Term D 
-D⟶
-Addop⟶+
-Addop⟶-
+D⟶ Addop Term #add_or_sub D
+D⟶ ε
+Addop⟶ +
+Addop⟶ -
 Term⟶Signed_factor G
 Term_prime⟶Signed_factor_prime G
 Term_zegond⟶Signed_factor_zegond G
-G⟶* Signed_factor G 
-G⟶ 
-Signed_factor⟶+ Factor 
-Signed_factor⟶- Factor
+G⟶* Signed_factor #mult G
+G⟶ ε
+Signed_factor⟶+ Factor #signed_num
+Signed_factor⟶- Factor #signed_num
 Signed_factor⟶ Factor
 Signed_factor_prime⟶Factor_prime
-Signed_factor_zegond⟶ + Factor 
-Signed_factor_zegond⟶- Factor
+Signed_factor_zegond⟶ + Factor #signed_num
+Signed_factor_zegond⟶- Factor #signed_num
 Signed_factor_zegond⟶Factor_zegond
 Factor⟶ ( Expression ) 
-Factor⟶ID Var_call_prime 
-Factor⟶NUM
+Factor⟶ #pid ID Var_call_prime
+Factor⟶ #pnum NUM
 Var_call_prime⟶ ( Args ) 
 Var_call_prime⟶Var_prime
-Var_prime⟶ [ Expression ] 
-Var_prime⟶
-Factor_prime⟶ ( Args ) 
-Factor_prime⟶
+Var_prime⟶ [ Expression ] #address_array
+Var_prime⟶ ε
+Factor_prime⟶ ( Args ) #output
+Factor_prime⟶ ε
 Factor_zegond⟶ ( Expression ) 
-Factor_zegond⟶NUM
+Factor_zegond⟶ #pnum NUM
 Args⟶ Arg_list 
-Args⟶
+Args⟶ ε
 Arg_list⟶Expression Arg_list_prime
 Arg_list_prime⟶, Expression Arg_list_prime
-Arg_list_prime⟶
+Arg_list_prime⟶ ε

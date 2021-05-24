@@ -14,6 +14,17 @@ class CodeGeneration:
         self.current_arg = 0
         self.in_rhs = False
         self.global_variables = []
+        self.semantic_routines = {'#pid': self.pid, '#pop': self.pop, '#pnum': self.pnum, '#save_array': self.save_array,
+                                  '#save': self.save, '#jpf': self.jpf, '#jp': self.jp, '#label': self.label,
+                                  '#while_stmt': self.while_stmt, '#assign': self.assign, '#address_array': self.address_array,
+                                  '#relop': self.relop, '#operator': self.operator, '#add_or_sub': self.add_or_sub,
+                                  '#mult': self.mult, '#signed_num': self.signed_num, '#output': self.output}
+
+    def code_gen(self, action_symbol, token=None):
+        if action_symbol in ['#pnum', '#pid', '#operator']:
+            self.semantic_routines[action_symbol](token)
+        else:
+            self.semantic_routines[action_symbol]()
 
     def get_temp(self):
         res = self.temp_index
