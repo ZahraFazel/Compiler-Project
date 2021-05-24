@@ -2,7 +2,7 @@
 Zahra Fazel 96102053
 Fereshteh Forghani 96102104
 """
-import anytree
+# import anytree
 
 from prd_parser import Parser
 from scanner import Scanner
@@ -16,7 +16,7 @@ def run(path=''):
     parser = Parser(scanner)
     parser.parse()
 
-    with open(output_path + '/output.txt', 'w') as file:
+    with open(output_path + 'output.txt', 'w') as file:
         for idx, l in enumerate(parser.code_generator.pb):
             if l is not None:
                 file.write('{}\t{}\n'.format(idx, l))
@@ -66,4 +66,4 @@ def run(path=''):
     #         i += 1
 
 
-# run("CodeGeneration_Tests/T1")
+run()
