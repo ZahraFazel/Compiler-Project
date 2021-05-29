@@ -217,15 +217,15 @@ class CodeGeneration:
         self.ss.push(start)
 
     def initial(self):
-        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.ss.top(), self.ss.get_from_top(1))
-        self.index += 1
+        # self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.ss.top(), self.ss.get_from_top(1))
+        # self.index += 1
         t = self.get_temp()
         self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.ss.top(), t)
         self.index += 1
         self.ss.pop()
         self.ss.push(t)
         t = self.get_temp()
-        self.pb[self.index] = '(ASSIGN, #1, {}, )'.format(t)
+        self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(t)
         self.index += 1
         self.ss.push(t)
         t = self.get_temp()
@@ -235,14 +235,14 @@ class CodeGeneration:
 
     def step(self):
         t = self.get_temp()
-        self.pb[self.index] = '(SUB, {}, #4, {})'.format(self.ss.get_from_top(3), t)
-        self.index += 1
-        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(3))
-        self.index += 1
-        t = self.get_temp()
         self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.ss.get_from_top(3), t)
         self.index += 1
         self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(t, self.ss.get_from_top(4))
+        self.index += 1
+        t = self.get_temp()
+        self.pb[self.index] = '(SUB, {}, #4, {})'.format(self.ss.get_from_top(3), t)
+        self.index += 1
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(3))
         self.index += 1
         t = self.get_temp()
         self.pb[self.index] = '(ADD, {}, #1, {})'.format(self.ss.get_from_top(2), t)
