@@ -491,10 +491,19 @@ class Parser:
         if self.lookahead_lexeme == 'for':
             node = anytree.Node('For-stmt', parent=parent)
             self.match(node, ('KEYWORD', ['for']))
+            self.code_generator.code_gen('#loop_size')
+            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#push_zero')
             self.match(node, ('ID', ['ID']))
             self.match(node, ('SYMBOL', ['=']))
             self.vars(node)
+            # self.code_generator.code_gen('#label')
+            self.code_generator.code_gen('#assign_for')
+            self.code_generator.code_gen('#initial')
+            self.code_generator.code_gen('#save')
+            self.code_generator.code_gen('#step')
             self.statement(node)
+            self.code_generator.code_gen('#for_stmt')
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', '(', '{', '}', 'break', 'else',
                                                                                'if', 'while', 'return', '+', '-']:
             self.errors += '#{0} : syntax error, missing for-stmt\n'.format(self.scanner.line)
@@ -512,6 +521,7 @@ class Parser:
         if self.lookahead_type == 'ID':
             node = anytree.Node('Vars', parent=parent)
             self.var(node)
+            self.code_generator.code_gen('#count')
             self.var_zegond(node)
         elif self.lookahead_type == 'NUM' or self.lookahead_lexeme in [';', '(', '{', 'break', 'if', 'while', 'return',
                                                                        'for', '+', '-']:
@@ -531,6 +541,7 @@ class Parser:
             node = anytree.Node('Var-zegond', parent=parent)
             self.match(node, ('SYMBOL', [',']))
             self.var(node)
+            self.code_generator.code_gen('#count')
             self.var_zegond(node)
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', '(', '{', 'break', 'if', 'while',
                                                                                'return', 'for', '+', '-']:
@@ -549,6 +560,7 @@ class Parser:
     def var(self, parent):
         if self.lookahead_type == 'ID':
             node = anytree.Node('Var', parent=parent)
+            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
             self.var_prime(node)
         elif self.lookahead_type == 'NUM' or self.lookahead_lexeme in [';', '(', '{', ',', 'break', 'if', 'while',

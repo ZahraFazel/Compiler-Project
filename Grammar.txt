@@ -36,11 +36,11 @@ Iteration_stmt⟶while ( #label Expression ) #save Statement #while
 Return_stmt⟶ return Return_stmt_prime
 Return_stmt_prime⟶; 
 Return_stmt_prime⟶Expression ;
-For_stmt⟶ for ID = Vars Statement
-Vars⟶Var Var_zegond
-Var_zegond⟶, Var Var_zegond 
+For_stmt⟶ for #loop_size #pid #push_zero ID = Vars #assign_for #initial #save #step Statement #for_stmt
+Vars⟶Var #count Var-zegond
+Var_zegond⟶, Var #count Var-zegond
 Var_zegond⟶ ε
-Var⟶ID Var_prime
+Var⟶#pid ID Var_prime
 Expression⟶ Simple_expression_zegond 
 Expression⟶ #pid ID B
 B⟶= Expression #assign

@@ -18,7 +18,10 @@ class CodeGeneration:
                                   '#save': self.save, '#jpf': self.jpf, '#jp': self.jp, '#label': self.label,
                                   '#while_stmt': self.while_stmt, '#assign': self.assign, '#address_array': self.address_array,
                                   '#relop': self.relop, '#operator': self.operator, '#add_or_sub': self.add_or_sub,
-                                  '#mult': self.mult, '#signed_num': self.signed_num, '#output': self.output}
+                                  '#mult': self.mult, '#signed_num': self.signed_num, '#output': self.output,
+                                  '#loop_size': self.loop_size, '#assign_for': self.assign_for, '#count': self.count,
+                                  '#for_stmt': self.for_stmt, '#push_zero': self.push_zero, '#initial': self.initial,
+                                  '#step': self.step}
 
     def code_gen(self, action_symbol, token=None):
         if action_symbol in ['#pnum', '#pid', '#operator']:
@@ -180,6 +183,80 @@ class CodeGeneration:
         self.ss.pop()
         self.index += 1
         self.ss.push(addr)
+
+    def loop_size(self):
+        t = self.get_temp()
+        self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(t)
+        self.index += 1
+        self.ss.push(t)
+
+    def push_zero(self):
+        self.ss.push('#0')
+
+    def count(self):
+        i = int(self.ss.get_from_top(1).replace('#', ''))
+        self.ss.push('#{}'.format(i + 1))
+        t = self.get_temp()
+        self.pb[self.index] = '(ADD, #1, {}, {})'.format(self.ss.get_from_top(2 * i + 4), t)
+        self.index += 1
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(2 * i + 4))
+        self.index += 1
+
+    def assign_for(self):
+        array_size = int(self.ss.top().replace('#', ''))
+        start = -1
+        for i in range(array_size):
+            t = self.get_temp()
+            loop_var = self.ss.get_from_top(1)
+            self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(loop_var, t)
+            self.index += 1
+            self.ss.pop(2)
+            if i == array_size - 1:
+                start = t
+        self.ss.pop()
+        self.ss.push(start)
+
+    def initial(self):
+        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.ss.top(), self.ss.get_from_top(1))
+        self.index += 1
+        t = self.get_temp()
+        self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.ss.top(), t)
+        self.index += 1
+        self.ss.pop()
+        self.ss.push(t)
+        t = self.get_temp()
+        self.pb[self.index] = '(ASSIGN, #1, {}, )'.format(t)
+        self.index += 1
+        self.ss.push(t)
+        t = self.get_temp()
+        self.pb[self.index] = '(LT, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(3), t)
+        self.index += 1
+        self.ss.push(t)
+
+    def step(self):
+        t = self.get_temp()
+        self.pb[self.index] = '(SUB, {}, #4, {})'.format(self.ss.get_from_top(3), t)
+        self.index += 1
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(3))
+        self.index += 1
+        t = self.get_temp()
+        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.ss.get_from_top(3), t)
+        self.index += 1
+        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(t, self.ss.get_from_top(4))
+        self.index += 1
+        t = self.get_temp()
+        self.pb[self.index] = '(ADD, {}, #1, {})'.format(self.ss.get_from_top(2), t)
+        self.index += 1
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(2))
+        self.index += 1
+
+    def for_stmt(self):
+
+        self.pb[self.ss.top()] = '(JPF, {}, {}, )'.format(self.ss.get_from_top(1), self.index + 1)
+        self.pb[self.index] = '(JP, {}, , )'.format(self.ss.top() - 1)
+        # print(self.pb)
+        self.index += 1
+        self.ss.pop(6)
 
     def output(self):
         # print("############ output")
