@@ -20,6 +20,10 @@ class Stack:
         self.size += 1
         # print("push", self.stack)
 
+    def empty(self):
+        self.stack = []
+        self.size = 0
+
     def top(self):
         return self.stack[self.size-1]
 

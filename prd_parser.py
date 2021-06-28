@@ -44,9 +44,11 @@ class Parser:
     def program(self):
         if self.lookahead_lexeme in ['int', 'void']:
             self.parse_tree = anytree.Node('Program', parent=None)
+            self.code_generator.code_gen('#save')
             self.declaration_list(self.parse_tree)
             if self.lookahead_lexeme == '$':
                 anytree.Node('$', parent=self.parse_tree)
+                self.code_generator.code_gen('#jp_main')
             elif self.lookahead_lexeme is not None:
                 self.errors += '#{0} : syntax error, missing $'.format(self.scanner.line)
         elif self.lookahead_lexeme == '$':
@@ -122,6 +124,7 @@ class Parser:
             node = anytree.Node('Declaration-prime', parent=parent)
             self.var_declaration_prime(node)
         elif self.lookahead_lexeme == '(':
+            self.code_generator.code_gen('#start_function')
             node = anytree.Node('Declaration-prime', parent=parent)
             self.fun_declaration_prime(node)
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', '(', '{', '}', 'int', 'void',
@@ -143,8 +146,10 @@ class Parser:
             node = anytree.Node('Fun-declaration-prime', parent=parent)
             self.match(node, ('SYMBOL', ['(']))
             self.params(node)
+            self.code_generator.code_gen('#define_function')
             self.match(node, ('SYMBOL', [')']))
             self.compound_stmt(node)
+            self.code_generator.code_gen('#end_function')
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in [';', '(', '{', '}', 'int', 'void',
                                                                                'break', 'if', 'while', 'return', 'for',
                                                                                '+', '-', '$']:
@@ -211,6 +216,7 @@ class Parser:
             self.match(node, ('KEYWORD', ['int']))
             self.code_generator.code_gen('#pid', self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
+            self.code_generator.code_gen('#add_param')
             self.param_prime(node)
             self.param_list(node)
         elif self.lookahead_lexeme == 'void':
@@ -470,10 +476,12 @@ class Parser:
     def return_stmt_prime(self, parent):
         if self.lookahead_lexeme == ';':
             node = anytree.Node('Return-stmt-prime', parent=parent)
+            self.code_generator.code_gen('#return')
             self.match(node, ('SYMBOL', [';']))
         elif self.lookahead_type in ['ID', 'NUM'] or self.lookahead_lexeme in ['(', '+', '-']:
             node = anytree.Node('Return-stmt-prime', parent=parent)
             self.expression(node)
+            self.code_generator.code_gen('#return_value')
             self.match(node, ('SYMBOL', [';']))
         elif self.lookahead_lexeme in ['{', '}', 'break', 'else', 'if', 'while', 'return', 'for']:
             self.errors += '#{0} : syntax error, missing return-stmt-prime\n'.format(self.scanner.line)
@@ -1019,10 +1027,12 @@ class Parser:
     # Var-call-prime -> ( Args ) | Var-prime
     def var_call_prime(self, parent):
         if self.lookahead_lexeme == '(':
+            self.code_generator.code_gen('#start_function_call')
             node = anytree.Node('Var-call-prime', parent=parent)
             self.match(node, ('SYMBOL', ['(']))
             self.args(node)
             self.match(node, ('SYMBOL', [')']))
+            self.code_generator.code_gen('#function_call')
         elif self.lookahead_lexeme == '[':
             node = anytree.Node('Var-call-prime', parent=parent)
             self.var_prime(node)
@@ -1064,11 +1074,12 @@ class Parser:
     # Factor-prime -> ( Args ) | EPSILON
     def factor_prime(self, parent):
         if self.lookahead_lexeme == '(':
+            self.code_generator.code_gen('#start_function_call')
             node = anytree.Node('Factor-prime', parent=parent)
             self.match(node, ('SYMBOL', ['(']))
             self.args(node)
             self.match(node, ('SYMBOL', [')']))
-            self.code_generator.code_gen('#output')
+            self.code_generator.code_gen('#function_call')
         elif self.lookahead_lexeme in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
             node = anytree.Node('Factor-prime', parent=parent)
             anytree.Node('epsilon', parent=node)

@@ -1,14 +1,18 @@
 from utils import Stack
+from symbol_table import *
 
 
 class CodeGeneration:
     def __init__(self):
-        self.index = 0
-        self.ss = Stack()
-        self.symbol_table = Stack()
-        self.scope_stack = Stack().push((0, None))
+        self.index = 1
+        self.semantic_stack = Stack()
+        self.symbol_table = SymbolTable()
+        self.symbol_table.new_symbol('output', 500, None, 1, 0)
+        self.scope_stack = Stack()
+        self.current_scope = None
         self.pb = [None] * 200
-        self.data_index = 500
+        self.pb[0] = '(ASSIGN, #0, 500, )'
+        self.data_index = 504
         self.temp_index = 1000
         self.jmp_position_index = 7000
         self.current_arg = 0
@@ -21,7 +25,11 @@ class CodeGeneration:
                                   '#mult': self.mult, '#signed_num': self.signed_num, '#output': self.output,
                                   '#loop_size': self.loop_size, '#assign_for': self.assign_for, '#count': self.count,
                                   '#for_stmt': self.for_stmt, '#push_zero': self.push_zero, '#initial': self.initial,
-                                  '#step': self.step}
+                                  '#step': self.step, '#jp_main': self.jp_main, '#start_function': self.start_function,
+                                  '#end_function': self.end_function, '#start_function_call': self.start_function_call,
+                                  '#function_call': self.function_call, '#add_param': self.add_param,
+                                  '#define_function': self.define_function, '#return': self._return,
+                                  '#return_value': self.return_value}
 
     def code_gen(self, action_symbol, token=None):
         if action_symbol in ['#pnum', '#pid', '#operator']:
@@ -39,227 +47,262 @@ class CodeGeneration:
         self.temp_index += 1
         return temp
 
-    def find_address(self, token):
-        addr = None
-        temp = None
-        for x in self.symbol_table.stack:
-            if x[0] == token:
-                addr = x[1]
-                temp = 'second'
-        if not addr:
-            addr = self.data_index
-            # print('symbol table')
-            self.symbol_table.push((token, self.data_index))
-            self.data_index += 4
-            temp = 'first'
-        return addr, temp
+    def jp_main(self):
+        line_num = self.symbol_table.find_symbol_by_name('main', None).starts_at
+        self.pb[1] = '(JP, {}, , )'.format(line_num - 2)
+
+    def start_function(self):
+        function = self.symbol_table.symbols[-1]
+        self.current_scope = function.name
+        self.symbol_table.new_symbol('return_' + function.name, function.address + 4, None, 0, self.index)
+        self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.data_index)
+        self.data_index += 4
+        self.index += 1
+
+    def define_function(self):
+        function = self.symbol_table.find_symbol_by_name(self.current_scope, None)
+        function.starts_at = self.index
+
+    def end_scope(self):
+        pass
+
+    def end_function(self):
+        self.current_scope = None
+        self.semantic_stack.empty()
+
+    def add_param(self):
+        function = self.symbol_table.find_symbol_by_name(self.current_scope, None)
+        function.length += 1
+
+    def array_input(self):
+        pass
+
+    def var_input(self):
+        pass
+
+    def _break(self):
+        pass
+
+    def _return(self):
+        function_return = self.symbol_table.find_symbol_by_name('return_' + self.current_scope, None)
+        self.pb[self.index] = '(JP, @{}, , )'.format(function_return.address)
+        self.index += 1
+
+    def return_value(self):
+        function = self.symbol_table.find_symbol_by_name(self.current_scope, None)
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), function.address)
+        self.semantic_stack.pop(1)
+        self.index += 1
+        function_return = self.symbol_table.find_symbol_by_name('return_' + self.current_scope, None)
+        self.pb[self.index] = '(JP, @{}, , )'.format(function_return.address)
+        self.index += 1
+
+    def start_function_call(self):
+        function = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), None)
+        self.semantic_stack.pop(1)
+        if function.name != 'output':
+            self.semantic_stack.push(function.name)
+        else:
+            self.semantic_stack.push('output')
+
+    def function_call(self):
+        n_params = 0
+        while not isinstance(self.semantic_stack.get_from_top(n_params), str) or \
+                (isinstance(self.semantic_stack.get_from_top(n_params), str) and
+                 self.semantic_stack.get_from_top(n_params).startswith('#')):
+            n_params += 1
+        function = self.symbol_table.find_symbol_by_name(self.semantic_stack.get_from_top(n_params), None)
+        if function.name != 'output':
+            params_addresses = [function.address + (i + 2) * 4 for i in range(function.length)]
+            params_addresses.reverse()
+            for address in params_addresses:
+                self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), address)
+                self.index += 1
+                self.semantic_stack.pop(1)
+            self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.index + 2, function.address + 4)
+            self.index += 1
+            self.pb[self.index] = '(JP, {}, , )'.format(function.starts_at)
+            self.index += 1
+            self.semantic_stack.pop(1)
+            self.semantic_stack.push(function.address)
+        else:
+            self.output()
 
     def pid(self, token):
-        # print("############ pid")
-        if token == 'output':
-            return
-        p, temp = self.find_address(token)
-        self.ss.push(p)
-        if temp == 'first':
-            self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(0, self.ss.top())
+        p = self.symbol_table.find_symbol_by_name(token, self.current_scope)
+        if p == 'first':
+            self.symbol_table.new_symbol(token, self.data_index, self.current_scope, 0, self.index)
+            self.data_index += 4
+            self.semantic_stack.push(self.symbol_table.symbols[-1].address)
+            self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.semantic_stack.top())
             self.index += 1
-        # print(token, self.pb)
+        else:
+            self.semantic_stack.push(p.address)
 
     def pop(self):
-        # print("############ pop")
-        self.ss.pop()
+        self.semantic_stack.pop()
 
     def pnum(self, token):
-        # print("############ pnum")
-        self.ss.push('#{}'.format(token))
+        self.semantic_stack.push('#{}'.format(token))
 
     def save_array(self):
-        # print("############ save array")
-        array_size = self.ss.get_from_top(0)
-        name = self.symbol_table.get_from_top(0)
-        self.symbol_table.pop(1)
-        self.symbol_table.push((name[0], name[1], array_size))
+        array_size = self.semantic_stack.get_from_top(0)
+        symbol = self.symbol_table.symbols[-1]
+        symbol.length = array_size
         for i in range(int(array_size.replace('#', '')) - 1):
             self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(0, self.data_index)
             self.index += 1
             self.data_index += 4
-        self.ss.pop(2)
+        self.semantic_stack.pop(2)
 
     def save(self):
-        # print("############ save")
-        # print("hel", self.index)
-        self.ss.push(self.index)
+        self.semantic_stack.push(self.index)
         self.index += 1
 
     def jpf(self):
-        # print("############ jpf")
-        # print(self.ss.stack)
-        self.pb[self.ss.top()] = '(JPF, {}, {}, )'.format(self.ss.get_from_top(1), self.index + 1)
-        # print(self.pb)
-        self.ss.pop(2)
-        self.ss.push(self.index)
+        self.pb[self.semantic_stack.top()] = '(JPF, {}, {}, )'.format(self.semantic_stack.get_from_top(1), self.index + 1)
+        self.semantic_stack.pop(2)
+        self.semantic_stack.push(self.index)
         self.index += 1
 
     def jp(self):
-        # print("############ jp")
-        self.pb[self.ss.top()] = '(JP, {}, , )'.format(self.index)
-        # print(self.pb)
-        self.ss.pop()
+        self.pb[self.semantic_stack.top()] = '(JP, {}, , )'.format(self.index)
+        self.semantic_stack.pop()
 
     def label(self):
-        # print("############ label")
-        self.ss.push(self.index)
+        self.semantic_stack.push(self.index)
 
     def while_stmt(self):
-        # print("############ while")
-        self.pb[self.ss.top()] = '(JPF, {}, {}, )'.format(self.ss.get_from_top(1), self.index + 1)
-        self.pb[self.index] = '(JP, {}, , )'.format(self.ss.get_from_top(2))
-        # print(self.pb)
+        self.pb[self.semantic_stack.top()] = '(JPF, {}, {}, )'.format(self.semantic_stack.get_from_top(1), self.index + 1)
+        self.pb[self.index] = '(JP, {}, , )'.format(self.semantic_stack.get_from_top(2))
         self.index += 1
-        self.ss.pop(3)
+        self.semantic_stack.pop(3)
 
     def assign(self):
-        # print("############ assign")
-        # print("hello", self.ss.top())
-        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.ss.top(), self.ss.get_from_top(1))
-        temp = self.ss.top()
-        # print(self.pb)
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(1))
+        temp = self.semantic_stack.top()
         self.index += 1
-        self.ss.pop(2)
-        self.ss.push(temp)
+        self.semantic_stack.pop(2)
+        self.semantic_stack.push(temp)
 
     def address_array(self):
-        # print("############ address array")
         t = self.get_temp()
-        self.pb[self.index] = '(MULT, {}, #4, {})'.format(self.ss.top(), t)
-        self.ss.pop()
+        self.pb[self.index] = '(MULT, {}, #4, {})'.format(self.semantic_stack.top(), t)
+        self.semantic_stack.pop()
         self.index += 1
-        self.pb[self.index] = '(ADD, #{}, {}, {}'.format(self.ss.top(), t, t)
-        self.ss.pop()
+        self.pb[self.index] = '(ADD, #{}, {}, {}'.format(self.semantic_stack.top(), t, t)
+        self.semantic_stack.pop()
         self.index += 1
-        self.ss.push('@' + str(t))
+        self.semantic_stack.push('@' + str(t))
 
     def relop(self):
-        # print("############ relop")
         addr = self.get_temp()
-        if self.ss.get_from_top(1) == '<':
-            self.pb[self.index] = '(LT, {}, {}, {})'.format(self.ss.get_from_top(2), self.ss.top(), addr)
-        elif self.ss.get_from_top(1) == '==':
-            self.pb[self.index] = '(EQ, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(2), addr)
-        # print(self.pb)
+        if self.semantic_stack.get_from_top(1) == '<':
+            self.pb[self.index] = '(LT, {}, {}, {})'.format(self.semantic_stack.get_from_top(2), self.semantic_stack.top(), addr)
+        elif self.semantic_stack.get_from_top(1) == '==':
+            self.pb[self.index] = '(EQ, {}, {}, {})'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(2), addr)
         self.index += 1
-        self.ss.pop(3)
-        self.ss.push(addr)
+        self.semantic_stack.pop(3)
+        self.semantic_stack.push(addr)
 
     def operator(self, token):
-        # print("############ operator")
-        self.ss.push(token)
+        self.semantic_stack.push(token)
 
     def add_or_sub(self):
-        # print("############ add")
         t = self.get_temp()
-        if self.ss.get_from_top(1) == '+':
-            self.pb[self.index] = '(ADD, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(2), t)
-        if self.ss.get_from_top(1) == '-':
-            self.pb[self.index] = '(SUB, {}, {}, {})'.format(self.ss.get_from_top(2), self.ss.top(), t)
-        # print(self.pb)
+        if self.semantic_stack.get_from_top(1) == '+':
+            self.pb[self.index] = '(ADD, {}, {}, {})'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(2), t)
+        if self.semantic_stack.get_from_top(1) == '-':
+            self.pb[self.index] = '(SUB, {}, {}, {})'.format(self.semantic_stack.get_from_top(2), self.semantic_stack.top(), t)
         self.index += 1
-        self.ss.pop(3)
-        self.ss.push(t)
+        self.semantic_stack.pop(3)
+        self.semantic_stack.push(t)
 
     def mult(self):
-        # print("############ mult")
         t = self.get_temp()
-        self.pb[self.index] = '(MULT, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(1), t)
-        # print(self.pb)
+        self.pb[self.index] = '(MULT, {}, {}, {})'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(1), t)
         self.index += 1
-        self.ss.pop(2)
-        self.ss.push(t)
+        self.semantic_stack.pop(2)
+        self.semantic_stack.push(t)
 
     def signed_num(self):
-        # print("############ signed num")
         addr = self.get_temp()
-        self.pb[self.index] = '(SUB, #0, {}, {})'.format(self.ss.top(), addr)
-        self.ss.pop()
+        self.pb[self.index] = '(SUB, #0, {}, {})'.format(self.semantic_stack.top(), addr)
+        self.semantic_stack.pop()
         self.index += 1
-        self.ss.push(addr)
+        self.semantic_stack.push(addr)
 
     def loop_size(self):
         t = self.get_temp()
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(t)
         self.index += 1
-        self.ss.push(t)
+        self.semantic_stack.push(t)
 
     def push_zero(self):
-        self.ss.push('#0')
+        self.semantic_stack.push('#0')
 
     def count(self):
-        i = int(self.ss.get_from_top(1).replace('#', ''))
-        self.ss.push('#{}'.format(i + 1))
+        i = int(self.semantic_stack.get_from_top(1).replace('#', ''))
+        self.semantic_stack.push('#{}'.format(i + 1))
         t = self.get_temp()
-        self.pb[self.index] = '(ADD, #1, {}, {})'.format(self.ss.get_from_top(2 * i + 4), t)
+        self.pb[self.index] = '(ADD, #1, {}, {})'.format(self.semantic_stack.get_from_top(2 * i + 4), t)
         self.index += 1
-        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(2 * i + 4))
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.semantic_stack.get_from_top(2 * i + 4))
         self.index += 1
 
     def assign_for(self):
-        array_size = int(self.ss.top().replace('#', ''))
+        array_size = int(self.semantic_stack.top().replace('#', ''))
         start = -1
         for i in range(array_size):
             t = self.get_temp()
-            loop_var = self.ss.get_from_top(1)
+            loop_var = self.semantic_stack.get_from_top(1)
             self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(loop_var, t)
             self.index += 1
-            self.ss.pop(2)
+            self.semantic_stack.pop(2)
             if i == array_size - 1:
                 start = t
-        self.ss.pop()
-        self.ss.push(start)
+        self.semantic_stack.pop()
+        self.semantic_stack.push(start)
 
     def initial(self):
-        # self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.ss.top(), self.ss.get_from_top(1))
-        # self.index += 1
         t = self.get_temp()
-        self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.ss.top(), t)
+        self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.semantic_stack.top(), t)
         self.index += 1
-        self.ss.pop()
-        self.ss.push(t)
+        self.semantic_stack.pop()
+        self.semantic_stack.push(t)
         t = self.get_temp()
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(t)
         self.index += 1
-        self.ss.push(t)
+        self.semantic_stack.push(t)
         t = self.get_temp()
-        self.pb[self.index] = '(LT, {}, {}, {})'.format(self.ss.top(), self.ss.get_from_top(3), t)
+        self.pb[self.index] = '(LT, {}, {}, {})'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(3), t)
         self.index += 1
-        self.ss.push(t)
+        self.semantic_stack.push(t)
 
     def step(self):
         t = self.get_temp()
-        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.ss.get_from_top(3), t)
+        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(self.semantic_stack.get_from_top(3), t)
         self.index += 1
-        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(t, self.ss.get_from_top(4))
-        self.index += 1
-        t = self.get_temp()
-        self.pb[self.index] = '(SUB, {}, #4, {})'.format(self.ss.get_from_top(3), t)
-        self.index += 1
-        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(3))
+        self.pb[self.index] = '(ASSIGN, @{}, {}, )'.format(t, self.semantic_stack.get_from_top(4))
         self.index += 1
         t = self.get_temp()
-        self.pb[self.index] = '(ADD, {}, #1, {})'.format(self.ss.get_from_top(2), t)
+        self.pb[self.index] = '(SUB, {}, #4, {})'.format(self.semantic_stack.get_from_top(3), t)
         self.index += 1
-        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.ss.get_from_top(2))
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.semantic_stack.get_from_top(3))
+        self.index += 1
+        t = self.get_temp()
+        self.pb[self.index] = '(ADD, {}, #1, {})'.format(self.semantic_stack.get_from_top(2), t)
+        self.index += 1
+        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(t, self.semantic_stack.get_from_top(2))
         self.index += 1
 
     def for_stmt(self):
-
-        self.pb[self.ss.top()] = '(JPF, {}, {}, )'.format(self.ss.get_from_top(1), self.index + 1)
-        self.pb[self.index] = '(JP, {}, , )'.format(self.ss.top() - 1)
-        # print(self.pb)
+        self.pb[self.semantic_stack.top()] = '(JPF, {}, {}, )'.format(self.semantic_stack.get_from_top(1), self.index + 1)
+        self.pb[self.index] = '(JP, {}, , )'.format(self.semantic_stack.top() - 1)
         self.index += 1
-        self.ss.pop(6)
+        self.semantic_stack.pop(6)
 
     def output(self):
-        # print("############ output")
-        self.pb[self.index] = '(PRINT, {}, , )'.format(self.ss.top())
+        self.pb[self.index] = '(PRINT, {}, , )'.format(self.semantic_stack.top())
         self.index += 1
-        # print(self.pb)
+        self.semantic_stack.pop(2)
