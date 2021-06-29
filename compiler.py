@@ -24,9 +24,10 @@ def run(path=''):
                 file.write('{}\t{}\n'.format(idx, l))
 
 
-# run()
+run()
 # chdir('D:/University/Compiler Design/Project/CodeGeneration_Tests/Tester')
-# result = subprocess.Popen(['tester_Windows'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+# chdir('/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/CodeGeneration_Tests/Tester')
+# result = subprocess.Popen(['tester_Mac'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 # stdout, stderr = result.communicate()
 # out = stdout.decode('utf-8')
 # result = ''

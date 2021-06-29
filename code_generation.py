@@ -58,10 +58,14 @@ class CodeGeneration:
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.data_index)
         self.data_index += 4
         self.index += 1
+        # print("start function")
+        # print(self.semantic_stack.stack)
 
     def define_function(self):
         function = self.symbol_table.find_symbol_by_name(self.current_scope, None)
         function.starts_at = self.index
+        # print("define func")
+        # print(self.semantic_stack.stack)
 
     def end_scope(self):
         pass
@@ -69,6 +73,8 @@ class CodeGeneration:
     def end_function(self):
         self.current_scope = None
         self.semantic_stack.empty()
+        # print("end scope")
+        # print(self.semantic_stack.stack)
 
     def add_param(self):
         function = self.symbol_table.find_symbol_by_name(self.current_scope, None)
@@ -104,14 +110,20 @@ class CodeGeneration:
             self.semantic_stack.push(function.name)
         else:
             self.semantic_stack.push('output')
+        # print("start func call")
+        # print(self.semantic_stack.stack)
 
     def function_call(self):
         n_params = 0
         while not isinstance(self.semantic_stack.get_from_top(n_params), str) or \
                 (isinstance(self.semantic_stack.get_from_top(n_params), str) and
-                 self.semantic_stack.get_from_top(n_params).startswith('#')):
+                 self.semantic_stack.get_from_top(n_params).startswith('#')) or \
+                (isinstance(self.semantic_stack.get_from_top(n_params), str) and
+                 self.semantic_stack.get_from_top(n_params).startswith('@')):
             n_params += 1
         function = self.symbol_table.find_symbol_by_name(self.semantic_stack.get_from_top(n_params), None)
+        # print("function call")
+        # print(self.semantic_stack.stack)
         if function.name != 'output':
             params_addresses = [function.address + (i + 2) * 4 for i in range(function.length)]
             params_addresses.reverse()
@@ -127,6 +139,8 @@ class CodeGeneration:
             self.semantic_stack.push(function.address)
         else:
             self.output()
+        # print(self.semantic_stack.stack)
+
 
     def pid(self, token):
         p = self.symbol_table.find_symbol_by_name(token, self.current_scope)
@@ -138,12 +152,18 @@ class CodeGeneration:
             self.index += 1
         else:
             self.semantic_stack.push(p.address)
+        # print("pid")
+        # print(self.semantic_stack.stack)
 
     def pop(self):
         self.semantic_stack.pop()
+        # print("pop")
+        # print(self.semantic_stack.stack)
 
     def pnum(self, token):
         self.semantic_stack.push('#{}'.format(token))
+        # print("pnum")
+        # print(self.semantic_stack.stack)
 
     def save_array(self):
         array_size = self.semantic_stack.get_from_top(0)
@@ -154,10 +174,14 @@ class CodeGeneration:
             self.index += 1
             self.data_index += 4
         self.semantic_stack.pop(2)
+        # print("save_arr")
+        # print(self.semantic_stack.stack)
 
     def save(self):
         self.semantic_stack.push(self.index)
         self.index += 1
+        # print("save")
+        # print(self.semantic_stack.stack)
 
     def jpf(self):
         self.pb[self.semantic_stack.top()] = '(JPF, {}, {}, )'.format(self.semantic_stack.get_from_top(1), self.index + 1)
@@ -184,6 +208,8 @@ class CodeGeneration:
         self.index += 1
         self.semantic_stack.pop(2)
         self.semantic_stack.push(temp)
+        # print("assign")
+        # print(self.semantic_stack.stack)
 
     def address_array(self):
         t = self.get_temp()
@@ -305,4 +331,4 @@ class CodeGeneration:
     def output(self):
         self.pb[self.index] = '(PRINT, {}, , )'.format(self.semantic_stack.top())
         self.index += 1
-        self.semantic_stack.pop(2)
+        self.semantic_stack.pop(1)
