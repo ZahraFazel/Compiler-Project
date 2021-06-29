@@ -7,7 +7,7 @@ for file in glob('D:/University/Compiler Design/Project/CodeGeneration_Tests/*/i
     # for file in glob('/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/Scanner_Tests/*/input.txt'):
     file = file.replace('\\', '/')
     folder = file.split('/')[-2]
-    if int(folder[1:]) <= 21:
+    if int(folder[1:]) <= 25:
         input_path = 'D:/University/Compiler Design/Project/CodeGeneration_Tests/' + folder
         # input_path = '/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/Scanner_Tests/' + folder
         chdir(input_path)

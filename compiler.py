@@ -24,16 +24,16 @@ def run(path=''):
                 file.write('{}\t{}\n'.format(idx, l))
 
 
-run()
-chdir('D:/University/Compiler Design/Project/CodeGeneration_Tests/Tester')
-result = subprocess.Popen(['tester_Windows'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-stdout, stderr = result.communicate()
-out = stdout.decode('utf-8')
-result = ''
-while out.find('\nPRINT') > 0:
-    line = out[out.find('\nPRINT'):]
-    line = line[1:line.find('\r')]
-    out = out[out.find('\nPRINT') + 1:]
-    result += line + '\n'
-# print(result)
-print(out)
+# run()
+# chdir('D:/University/Compiler Design/Project/CodeGeneration_Tests/Tester')
+# result = subprocess.Popen(['tester_Windows'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+# stdout, stderr = result.communicate()
+# out = stdout.decode('utf-8')
+# result = ''
+# while out.find('\nPRINT') > 0:
+#     line = out[out.find('\nPRINT'):]
+#     line = line[1:line.find('\r')]
+#     out = out[out.find('\nPRINT') + 1:]
+#     result += line + '\n'
+# # print(result)
+# print(out)
