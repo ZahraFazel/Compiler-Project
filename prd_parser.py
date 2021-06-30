@@ -104,6 +104,7 @@ class Parser:
     def declaration_initial(self, parent):
         if self.lookahead_lexeme in ['int', 'void']:
             node = anytree.Node('Declaration-initial', parent=parent)
+            self.code_generator.code_gen('#type', self.lookahead_lexeme)
             self.type_specifier(node)
             self.code_generator.code_gen('#pid', self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
@@ -213,6 +214,7 @@ class Parser:
     def params(self, parent):
         if self.lookahead_lexeme == 'int':
             node = anytree.Node('Params', parent=parent)
+            self.code_generator.code_gen('#type', self.lookahead_lexeme)
             self.match(node, ('KEYWORD', ['int']))
             self.code_generator.code_gen('#pid', self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
@@ -260,6 +262,7 @@ class Parser:
             node = anytree.Node('Param-list', parent=parent)
             self.match(node, ('SYMBOL', [',']))
             self.param(node)
+            self.code_generator.code_gen('#add_param')
             self.param_list(node)
         elif self.lookahead_lexeme == ')':
             node = anytree.Node('Param-list', parent=parent)

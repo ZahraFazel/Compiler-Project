@@ -1,24 +1,20 @@
+int f(int a, int b)
+{
+    return a + b;
+}
+
 void main( void )
 {
     int a;
     int b;
-    int c;
-    int d;
-    int i;
     a = 1;
     b = 2;
-    c = 3;
-    d = 4;
-    for i=a,b,c,d
+    if (f(a,2))
     {
-        if(i == c)
-        {
-            break;
-        }
-        else
-        {
-            output (i);
-        }
+        output(1);
     }
-    output(i);
+    else
+    {
+        output(2);
+    }
 }

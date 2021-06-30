@@ -7,7 +7,7 @@ class CodeGeneration:
         self.index = 1
         self.semantic_stack = Stack()
         self.symbol_table = SymbolTable()
-        self.symbol_table.new_symbol('output', 500, None, 1, 0)
+        self.symbol_table.new_symbol('output', 500, None, 1, 0, 'void')
         self.loop_scope_stack = Stack()
         self.current_scope = None
         self.pb = [None] * 500
@@ -25,10 +25,11 @@ class CodeGeneration:
                                   '#end_function': self.end_function, '#start_function_call': self.start_function_call,
                                   '#function_call': self.function_call, '#add_param': self.add_param,
                                   '#define_function': self.define_function, '#return': self._return,
-                                  '#return_value': self.return_value, '#break': self._break, '#loop': self.loop}
+                                  '#return_value': self.return_value, '#break': self._break, '#loop': self.loop,
+                                  '#type': self.type}
 
     def code_gen(self, action_symbol, token=None):
-        if action_symbol in ['#pnum', '#pid', '#operator']:
+        if action_symbol in ['#pnum', '#pid', '#operator', '#type']:
             self.semantic_routines[action_symbol](token)
         else:
             self.semantic_routines[action_symbol]()
@@ -50,7 +51,7 @@ class CodeGeneration:
     def start_function(self):
         function = self.symbol_table.symbols[-1]
         self.current_scope = function.name
-        self.symbol_table.new_symbol('return_' + function.name, function.address + 4, None, 0, self.index)
+        self.symbol_table.new_symbol('return_' + function.name, function.address + 4, None, 0, self.index, function.type)
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.data_index)
         self.data_index += 4
         self.index += 1
@@ -138,15 +139,26 @@ class CodeGeneration:
             self.pb[self.index] = '(JP, {}, , )'.format(function.starts_at)
             self.index += 1
             self.semantic_stack.pop(1)
-            self.semantic_stack.push(function.address)
+            if function.type == 'int':
+                t = self.get_temp()
+                self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(function.address, t)
+                self.index += 1
+                self.semantic_stack.push(t)
+            else:
+                self.semantic_stack.push(function.address)
         else:
             self.output()
         # print(self.semantic_stack.stack)
 
+    def type(self, token):
+        self.semantic_stack.push(token)
+
     def pid(self, token):
         p = self.symbol_table.find_symbol_by_name(token, self.current_scope)
         if p == 'first':
-            self.symbol_table.new_symbol(token, self.data_index, self.current_scope, 0, self.index)
+            t = self.semantic_stack.top()
+            self.semantic_stack.pop(1)
+            self.symbol_table.new_symbol(token, self.data_index, self.current_scope, 0, self.index, t)
             self.data_index += 4
             self.semantic_stack.push(self.symbol_table.symbols[-1].address)
             self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.semantic_stack.top())

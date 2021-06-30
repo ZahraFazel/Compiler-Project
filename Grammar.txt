@@ -2,7 +2,7 @@ Program⟶ #save Declaration_list $ #jpf_main
 Declaration_list⟶ Declaration Declaration_list
 Declaration_list⟶ ε
 Declaration⟶Declaration_initial Declaration_prime
-Declaration_initial⟶Type_specifier #pid ID
+Declaration_initial⟶ #type Type_specifier #pid ID
 Declaration_prime⟶ #start_function Fun_declaration_prime
 Declaration_prime⟶Var_declaration_prime
 Var_declaration_prime⟶ ; #pop
@@ -10,11 +10,11 @@ Var_declaration_prime⟶[ #pnum NUM ] #save_arr ;
 Fun_declaration_prime⟶ ( Params ) #define_function Compound_stmt #end_scope #end_function
 Type_specifier⟶int 
 Type_specifier⟶void
-Params⟶int #pid ID #add_param Param_prime Param_list
+Params⟶ #type int #pid ID #add_param Param_prime Param_list
 Params⟶void Param_list_void_abtar
 Param_list_void_abtar⟶#pid ID Param_prime Param_list
 Param_list_void_abtar⟶ ε
-Param_list⟶, Param Param_list 
+Param_list⟶, Param #add_param Param_list
 Param_list⟶ ε
 Param⟶Declaration_initial Param_prime
 Param_prime⟶ [ ] #array_input
