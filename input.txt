@@ -1,14 +1,24 @@
-int f(int a)
+void main( void )
 {
-    a = a * 2;
-    return a;
-}
-
-void main ( void )
-{
+    int a;
+    int b;
+    int c;
+    int d;
     int i;
-    int j;
-    i = 3;
-    j = f(i);
-    output(j);
+    a = 1;
+    b = 2;
+    c = 3;
+    d = 4;
+    for i=a,b,c,d
+    {
+        if(i == c)
+        {
+            break;
+        }
+        else
+        {
+            output (i);
+        }
+    }
+    output(i);
 }

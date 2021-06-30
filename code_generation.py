@@ -8,16 +8,12 @@ class CodeGeneration:
         self.semantic_stack = Stack()
         self.symbol_table = SymbolTable()
         self.symbol_table.new_symbol('output', 500, None, 1, 0)
-        self.scope_stack = Stack()
+        self.loop_scope_stack = Stack()
         self.current_scope = None
-        self.pb = [None] * 200
+        self.pb = [None] * 500
         self.pb[0] = '(ASSIGN, #0, 500, )'
         self.data_index = 504
-        self.temp_index = 1000
-        self.jmp_position_index = 7000
-        self.current_arg = 0
-        self.in_rhs = False
-        self.global_variables = []
+        self.temp_index = 2000
         self.semantic_routines = {'#pid': self.pid, '#pop': self.pop, '#pnum': self.pnum, '#save_array': self.save_array,
                                   '#save': self.save, '#jpf': self.jpf, '#jp': self.jp, '#label': self.label,
                                   '#while_stmt': self.while_stmt, '#assign': self.assign, '#address_array': self.address_array,
@@ -29,7 +25,7 @@ class CodeGeneration:
                                   '#end_function': self.end_function, '#start_function_call': self.start_function_call,
                                   '#function_call': self.function_call, '#add_param': self.add_param,
                                   '#define_function': self.define_function, '#return': self._return,
-                                  '#return_value': self.return_value}
+                                  '#return_value': self.return_value, '#break': self._break, '#loop': self.loop}
 
     def code_gen(self, action_symbol, token=None):
         if action_symbol in ['#pnum', '#pid', '#operator']:
@@ -58,23 +54,28 @@ class CodeGeneration:
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.data_index)
         self.data_index += 4
         self.index += 1
-        # print("start function")
-        # print(self.semantic_stack.stack)
 
     def define_function(self):
         function = self.symbol_table.find_symbol_by_name(self.current_scope, None)
         function.starts_at = self.index
-        # print("define func")
-        # print(self.semantic_stack.stack)
+
+    def loop(self):
+        self.loop_scope_stack.push(self.index)
+        self.index += 2
 
     def end_scope(self):
         pass
 
     def end_function(self):
+        if self.current_scope == 'main':
+            function_return = self.symbol_table.find_symbol_by_name('return_' + self.current_scope, None)
+            self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.index + 2, function_return.address)
+            self.index += 1
+        function_return = self.symbol_table.find_symbol_by_name('return_' + self.current_scope, None)
+        self.pb[self.index] = '(JP, @{}, , )'.format(function_return.address)
+        self.index += 1
         self.current_scope = None
         self.semantic_stack.empty()
-        # print("end scope")
-        # print(self.semantic_stack.stack)
 
     def add_param(self):
         function = self.symbol_table.find_symbol_by_name(self.current_scope, None)
@@ -87,7 +88,8 @@ class CodeGeneration:
         pass
 
     def _break(self):
-        pass
+        self.pb[self.index] = '(JP, {}, , )'.format(self.loop_scope_stack.top() + 1)
+        self.index += 1
 
     def _return(self):
         function_return = self.symbol_table.find_symbol_by_name('return_' + self.current_scope, None)
@@ -140,7 +142,6 @@ class CodeGeneration:
         else:
             self.output()
         # print(self.semantic_stack.stack)
-
 
     def pid(self, token):
         p = self.symbol_table.find_symbol_by_name(token, self.current_scope)
@@ -201,6 +202,10 @@ class CodeGeneration:
         self.pb[self.index] = '(JP, {}, , )'.format(self.semantic_stack.get_from_top(2))
         self.index += 1
         self.semantic_stack.pop(3)
+        start = self.loop_scope_stack.top()
+        self.loop_scope_stack.pop(1)
+        self.pb[start] = '(JP, {}, , )'.format(start + 2)
+        self.pb[start + 1] = '(JP, {}, , )'.format(self.index)
 
     def assign(self):
         self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(1))
@@ -327,6 +332,10 @@ class CodeGeneration:
         self.pb[self.index] = '(JP, {}, , )'.format(self.semantic_stack.top() - 1)
         self.index += 1
         self.semantic_stack.pop(6)
+        start = self.loop_scope_stack.top()
+        self.loop_scope_stack.pop(1)
+        self.pb[start] = '(JP, {}, , )'.format(start + 2)
+        self.pb[start + 1] = '(JP, {}, , )'.format(self.index)
 
     def output(self):
         self.pb[self.index] = '(PRINT, {}, , )'.format(self.semantic_stack.top())

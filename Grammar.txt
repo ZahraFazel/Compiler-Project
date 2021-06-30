@@ -32,11 +32,11 @@ Expression_stmt⟶Expression ; #pop
 Expression_stmt⟶break #break ;
 Expression_stmt⟶;
 Selection_stmt⟶if ( Expression ) #save Statement else #jpf Statement #jp
-Iteration_stmt⟶while ( #label Expression ) #save Statement #while
+Iteration_stmt⟶ #loop while ( #label Expression ) #save Statement #while
 Return_stmt⟶ return Return_stmt_prime
 Return_stmt_prime⟶ #return ;
 Return_stmt_prime⟶Expression #return_value ;
-For_stmt⟶ for #loop_size #pid #push_zero ID = Vars #assign_for #initial #save #step Statement #for_stmt
+For_stmt⟶ #loop for #loop_size #pid #push_zero ID = Vars #assign_for #initial #save #step Statement #for_stmt
 Vars⟶Var #count Var-zegond
 Var_zegond⟶, Var #count Var-zegond
 Var_zegond⟶ ε

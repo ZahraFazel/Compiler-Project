@@ -389,6 +389,7 @@ class Parser:
         elif self.lookahead_lexeme == 'break':
             node = anytree.Node('Expression-stmt', parent=parent)
             self.match(node, ('KEYWORD', ['break']))
+            self.code_generator.code_gen('#break')
             self.match(node, ('SYMBOL', [';']))
         elif self.lookahead_lexeme == ';':
             node = anytree.Node('Expression-stmt', parent=parent)
@@ -434,6 +435,7 @@ class Parser:
     def iteration_stmt(self, parent):
         if self.lookahead_lexeme == 'while':
             node = anytree.Node('Iteration-stmt', parent=parent)
+            self.code_generator.code_gen('#loop')
             self.match(node, ('KEYWORD', ['while']))
             self.match(node, ('SYMBOL', ['(']))
             self.code_generator.code_gen('#label')
@@ -498,6 +500,7 @@ class Parser:
     def for_stmt(self, parent):
         if self.lookahead_lexeme == 'for':
             node = anytree.Node('For-stmt', parent=parent)
+            self.code_generator.code_gen('#loop')
             self.match(node, ('KEYWORD', ['for']))
             self.code_generator.code_gen('#loop_size')
             self.code_generator.code_gen('#pid', self.lookahead_lexeme)
