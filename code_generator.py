@@ -36,7 +36,7 @@ class CodeGeneration:
             self.semantic_routines[action_symbol](token, line_num)
         elif action_symbol in ['#pnum', '#operator', '#type', '#define_id']:
             self.semantic_routines[action_symbol](token)
-        elif action_symbol in ['#function_call']:
+        elif action_symbol in ['#function_call', '#break']:
             self.semantic_routines[action_symbol](line_num)
         else:
             self.semantic_routines[action_symbol]()
@@ -95,9 +95,12 @@ class CodeGeneration:
     def array_input(self):
         self.symbol_table.symbols[-1].type = self.symbol_table.symbols[-1].type + '_array_input'
 
-    def _break(self):
-        self.pb[self.index] = '(JP, {}, , )'.format(self.loop_scope_stack.top() + 1)
-        self.index += 1
+    def _break(self, line_num):
+        if self.loop_scope_stack.size > 0:
+            self.pb[self.index] = '(JP, {}, , )'.format(self.loop_scope_stack.top() + 1)
+            self.index += 1
+        else:
+            self.semantic_checker.error('break_statement', line_num)
 
     def _return(self):
         function_return = self.symbol_table.find_symbol_by_name('return_' + self.current_scope, None)
@@ -147,7 +150,8 @@ class CodeGeneration:
                             self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(start, param.address)
                         else:
                             self.semantic_checker.error('actual_and_formal_parameters_type_matching', line_num,
-                                                        params.index(param) + 1, function.name, 'array', 'int')
+                                                        function.length - params.index(param), function.name, 'array',
+                                                        'int')
                             self.semantic_stack.pop(n_params - params.index(param) + 1)
                             self.semantic_stack.push(function.address)
                             return
@@ -157,7 +161,8 @@ class CodeGeneration:
                             self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), param.address)
                         else:
                             self.semantic_checker.error('actual_and_formal_parameters_type_matching', line_num,
-                                                        params.index(param) + 1, function.name, 'int', 'array')
+                                                        function.length - params.index(param), function.name, 'int',
+                                                        'array')
                             self.semantic_stack.pop(n_params - params.index(param) + 1)
                             self.semantic_stack.push(function.address)
                             return

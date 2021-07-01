@@ -392,7 +392,7 @@ class Parser:
         elif self.lookahead_lexeme == 'break':
             node = anytree.Node('Expression-stmt', parent=parent)
             self.match(node, ('KEYWORD', ['break']))
-            self.code_generator.code_gen('#break')
+            self.code_generator.code_gen('#break', line_num=self.scanner.line)
             self.match(node, ('SYMBOL', [';']))
         elif self.lookahead_lexeme == ';':
             node = anytree.Node('Expression-stmt', parent=parent)
