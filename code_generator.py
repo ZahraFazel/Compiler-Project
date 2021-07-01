@@ -133,17 +133,34 @@ class CodeGeneration:
         if function.length != n_params:
             self.semantic_checker.error('actual_and_formal_parameters_number_matching', line_num, function.name)
             self.semantic_stack.pop(n_params + 1)
+            self.semantic_stack.push(function.address)
+            return
         else:
             if function.name != 'output':
                 params = self.symbol_table.find_function_parameters(function.name, function.length)
                 params.reverse()
                 for param in params:
                     if param.type.endswith('_array_input'):
-                        length = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope).length
-                        start = 4 * length + self.semantic_stack.top()
-                        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(start, param.address)
+                        array = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope)
+                        if array.type.endswith('_array'):
+                            start = 4 * array.length + self.semantic_stack.top()
+                            self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(start, param.address)
+                        else:
+                            self.semantic_checker.error('actual_and_formal_parameters_type_matching', line_num,
+                                                        params.index(param) + 1, function.name, 'array', 'int')
+                            self.semantic_stack.pop(n_params - params.index(param) + 1)
+                            self.semantic_stack.push(function.address)
+                            return
                     else:
-                        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), param.address)
+                        var = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope)
+                        if var.type == 'int':
+                            self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), param.address)
+                        else:
+                            self.semantic_checker.error('actual_and_formal_parameters_type_matching', line_num,
+                                                        params.index(param) + 1, function.name, 'int', 'array')
+                            self.semantic_stack.pop(n_params - params.index(param) + 1)
+                            self.semantic_stack.push(function.address)
+                            return
                     self.index += 1
                     self.semantic_stack.pop(1)
                 self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.index + 2, function.address + 4)
