@@ -145,7 +145,7 @@ class CodeGeneration:
                 for param in params:
                     if param.type.endswith('_array_input'):
                         array = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope)
-                        if array.type.endswith('_array'):
+                        if array.type.endswith('_array') or array.type.endswith('_array_input'):
                             start = 4 * array.length + self.semantic_stack.top()
                             self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(start, param.address)
                         else:
@@ -156,8 +156,15 @@ class CodeGeneration:
                             self.semantic_stack.push(function.address)
                             return
                     else:
-                        var = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope)
-                        if var.type == 'int':
+                        if not isinstance(self.semantic_stack.top(), str) and self.semantic_stack.top() < 1000:
+                            var = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope)
+                        elif (not isinstance(self.semantic_stack.top(), str) and self.semantic_stack.top() >= 1000) \
+                                or isinstance(self.semantic_stack.top(), str):
+                            var = self.semantic_stack.top()
+                        else:
+                            var = None
+                        if (isinstance(var, SymbolTableEntry) and var.type == 'int') or (isinstance(var, int)) or \
+                                (isinstance(var, str) and var[1:].isdigit()):
                             self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), param.address)
                         else:
                             self.semantic_checker.error('actual_and_formal_parameters_type_matching', line_num,
