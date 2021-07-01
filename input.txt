@@ -1,20 +1,20 @@
-int f(int a, int b)
-{
-    return a + b;
+/*===== sample S1 =====*/
+int foo(int x){
+	if (x < 0){
+		output(x);
+		return 1;
+	}
+	else {
+		output(x);
+		return x + c;
+	}
 }
 
-void main( void )
-{
-    int a;
-    int b;
-    a = 1;
-    b = 2;
-    if (f(a,2))
-    {
-        output(1);
-    }
-    else
-    {
-        output(2);
-    }
+void main(void){
+	int i;
+	int a[10];
+	//i= foo(0,1);
+	output(i);
+	//i=foo(a);
+	//output(i);
 }

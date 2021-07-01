@@ -1,5 +1,5 @@
 import anytree
-from code_generation import CodeGeneration
+from code_generator import CodeGeneration
 
 
 class Parser:
@@ -239,7 +239,7 @@ class Parser:
     def param_list_void_abtar(self, parent):
         if self.lookahead_type == 'ID':
             node = anytree.Node('Param-list-void-abtar', parent=parent)
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#pid', self.lookahead_lexeme, self.scanner.line)
             self.match(node, ('ID', ['ID']))
             self.param_prime(node)
             self.param_list(node)
@@ -506,7 +506,7 @@ class Parser:
             self.code_generator.code_gen('#loop')
             self.match(node, ('KEYWORD', ['for']))
             self.code_generator.code_gen('#loop_size')
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#pid', self.lookahead_lexeme, self.scanner.line)
             self.code_generator.code_gen('#push_zero')
             self.match(node, ('ID', ['ID']))
             self.match(node, ('SYMBOL', ['=']))
@@ -574,7 +574,7 @@ class Parser:
     def var(self, parent):
         if self.lookahead_type == 'ID':
             node = anytree.Node('Var', parent=parent)
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#pid', self.lookahead_lexeme, self.scanner.line)
             self.match(node, ('ID', ['ID']))
             self.var_prime(node)
         elif self.lookahead_type == 'NUM' or self.lookahead_lexeme in [';', '(', '{', ',', 'break', 'if', 'while',
@@ -596,7 +596,7 @@ class Parser:
             self.simple_expression_zegond(node)
         elif self.lookahead_type == 'ID':
             node = anytree.Node('Expression', parent=parent)
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#pid', self.lookahead_lexeme, self.scanner.line)
             self.match(node, ('ID', ['ID']))
             self.b(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',']:
@@ -1012,7 +1012,7 @@ class Parser:
             self.match(node, ('SYMBOL', [')']))
         elif self.lookahead_type == 'ID':
             node = anytree.Node('Factor', parent=parent)
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#pid', self.lookahead_lexeme, self.scanner.line)
             self.match(node, ('ID', ['ID']))
             self.var_call_prime(node)
         elif self.lookahead_type == 'NUM':

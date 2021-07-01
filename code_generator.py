@@ -1,5 +1,6 @@
 from utils import Stack
 from symbol_table import *
+from semantic_checker import *
 
 
 class CodeGeneration:
@@ -10,11 +11,12 @@ class CodeGeneration:
         self.symbol_table.new_symbol('output', 500, None, 1, 0, 'void')
         self.loop_scope_stack = Stack()
         self.current_scope = None
-        self.pb = [None] * 500
+        self.pb = [''] * 500
         self.pb[0] = '(ASSIGN, #0, 500, )'
         self.data_index = 504
-        self.temp_index = 2000
+        self.temp_index = 1000
         self.main = 1
+        self.semantic_checker = SemanticChecker()
         self.semantic_routines = {'#pid': self.pid, '#pop': self.pop, '#pnum': self.pnum, '#save_array': self.save_array,
                                   '#save': self.save, '#jpf': self.jpf, '#jp': self.jp, '#label': self.label,
                                   '#while_stmt': self.while_stmt, '#assign': self.assign, '#address_array': self.address_array,
@@ -29,8 +31,10 @@ class CodeGeneration:
                                   '#return_value': self.return_value, '#break': self._break, '#loop': self.loop,
                                   '#type': self.type, '#array_input': self.array_input, '#define_id': self.define_id}
 
-    def code_gen(self, action_symbol, token=None):
-        if action_symbol in ['#pnum', '#pid', '#operator', '#type', '#define_id']:
+    def code_gen(self, action_symbol, token=None, line_num=None):
+        if action_symbol in ['#pid']:
+            self.semantic_routines[action_symbol](token, line_num)
+        elif action_symbol in ['#pnum', '#operator', '#type', '#define_id']:
             self.semantic_routines[action_symbol](token)
         else:
             self.semantic_routines[action_symbol]()
@@ -163,9 +167,13 @@ class CodeGeneration:
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.semantic_stack.top())
         self.index += 1
 
-    def pid(self, token):
+    def pid(self, token, line_num):
         p = self.symbol_table.find_symbol_by_name(token, self.current_scope)
-        self.semantic_stack.push(p.address)
+        if p != 'first':
+            self.semantic_stack.push(p.address)
+        else:
+            self.semantic_checker.error('scoping', line_num, token)
+            self.semantic_stack.push(self.symbol_table.symbols[-1].address)
 
     def pop(self):
         self.semantic_stack.pop()
