@@ -32,7 +32,3 @@ for file in glob('D:/University/Compiler Design/Project/CodeGeneration_Tests/*/i
         else:
             print('Test ' + folder + ': FAIL\n')
             print(result)
-        # try:
-        #
-        # except:
-        #     print('Test ' + folder + ': ERROR\n')

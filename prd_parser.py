@@ -44,7 +44,6 @@ class Parser:
     def program(self):
         if self.lookahead_lexeme in ['int', 'void']:
             self.parse_tree = anytree.Node('Program', parent=None)
-            self.code_generator.code_gen('#save')
             self.declaration_list(self.parse_tree)
             if self.lookahead_lexeme == '$':
                 anytree.Node('$', parent=self.parse_tree)
@@ -106,7 +105,7 @@ class Parser:
             node = anytree.Node('Declaration-initial', parent=parent)
             self.code_generator.code_gen('#type', self.lookahead_lexeme)
             self.type_specifier(node)
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#define_id', self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
         elif self.lookahead_lexeme in [';', '[', '(', ')', ',']:
             self.errors += '#{0} : syntax error, missing declaration-initial\n'.format(self.scanner.line)
@@ -216,7 +215,7 @@ class Parser:
             node = anytree.Node('Params', parent=parent)
             self.code_generator.code_gen('#type', self.lookahead_lexeme)
             self.match(node, ('KEYWORD', ['int']))
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme)
+            self.code_generator.code_gen('#define_id', self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
             self.code_generator.code_gen('#add_param')
             self.param_prime(node)
@@ -299,6 +298,7 @@ class Parser:
             node = anytree.Node('Param-prime', parent=parent)
             self.match(node, ('SYMBOL', ['[']))
             self.match(node, ('SYMBOL', [']']))
+            self.code_generator.code_gen('#array_input')
         elif self.lookahead_lexeme in [')', ',']:
             node = anytree.Node('Param-prime', parent=parent)
             anytree.Node('epsilon', parent=node)

@@ -14,6 +14,7 @@ class CodeGeneration:
         self.pb[0] = '(ASSIGN, #0, 500, )'
         self.data_index = 504
         self.temp_index = 2000
+        self.main = 1
         self.semantic_routines = {'#pid': self.pid, '#pop': self.pop, '#pnum': self.pnum, '#save_array': self.save_array,
                                   '#save': self.save, '#jpf': self.jpf, '#jp': self.jp, '#label': self.label,
                                   '#while_stmt': self.while_stmt, '#assign': self.assign, '#address_array': self.address_array,
@@ -26,10 +27,10 @@ class CodeGeneration:
                                   '#function_call': self.function_call, '#add_param': self.add_param,
                                   '#define_function': self.define_function, '#return': self._return,
                                   '#return_value': self.return_value, '#break': self._break, '#loop': self.loop,
-                                  '#type': self.type}
+                                  '#type': self.type, '#array_input': self.array_input, '#define_id': self.define_id}
 
     def code_gen(self, action_symbol, token=None):
-        if action_symbol in ['#pnum', '#pid', '#operator', '#type']:
+        if action_symbol in ['#pnum', '#pid', '#operator', '#type', '#define_id']:
             self.semantic_routines[action_symbol](token)
         else:
             self.semantic_routines[action_symbol]()
@@ -46,10 +47,16 @@ class CodeGeneration:
 
     def jp_main(self):
         line_num = self.symbol_table.find_symbol_by_name('main', None).starts_at
-        self.pb[1] = '(JP, {}, , )'.format(line_num - 2)
+        t = self.pb[self.main - 1]
+        self.pb[self.main - 1] = '(JP, {}, , )'.format(line_num - 2)
+        self.pb[self.main] = t
 
     def start_function(self):
         function = self.symbol_table.symbols[-1]
+        function.type = function.type + '_function'
+        if self.symbol_table.is_first_function(function.name):
+            self.main = self.index
+            self.index += 1
         self.current_scope = function.name
         self.symbol_table.new_symbol('return_' + function.name, function.address + 4, None, 0, self.index, function.type)
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.data_index)
@@ -63,9 +70,6 @@ class CodeGeneration:
     def loop(self):
         self.loop_scope_stack.push(self.index)
         self.index += 2
-
-    def end_scope(self):
-        pass
 
     def end_function(self):
         if self.current_scope == 'main':
@@ -83,10 +87,7 @@ class CodeGeneration:
         function.length += 1
 
     def array_input(self):
-        pass
-
-    def var_input(self):
-        pass
+        self.symbol_table.symbols[-1].type = self.symbol_table.symbols[-1].type + '_array_input'
 
     def _break(self):
         self.pb[self.index] = '(JP, {}, , )'.format(self.loop_scope_stack.top() + 1)
@@ -113,8 +114,6 @@ class CodeGeneration:
             self.semantic_stack.push(function.name)
         else:
             self.semantic_stack.push('output')
-        # print("start func call")
-        # print(self.semantic_stack.stack)
 
     def function_call(self):
         n_params = 0
@@ -125,13 +124,16 @@ class CodeGeneration:
                  self.semantic_stack.get_from_top(n_params).startswith('@')):
             n_params += 1
         function = self.symbol_table.find_symbol_by_name(self.semantic_stack.get_from_top(n_params), None)
-        # print("function call")
-        # print(self.semantic_stack.stack)
         if function.name != 'output':
-            params_addresses = [function.address + (i + 2) * 4 for i in range(function.length)]
-            params_addresses.reverse()
-            for address in params_addresses:
-                self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), address)
+            params = self.symbol_table.find_function_parameters(function.name, function.length)
+            params.reverse()
+            for param in params:
+                if param.type.endswith('_array_input'):
+                    length = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope).length
+                    start = 4 * length + self.semantic_stack.top()
+                    self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(start, param.address)
+                else:
+                    self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), param.address)
                 self.index += 1
                 self.semantic_stack.pop(1)
             self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.index + 2, function.address + 4)
@@ -139,7 +141,7 @@ class CodeGeneration:
             self.pb[self.index] = '(JP, {}, , )'.format(function.starts_at)
             self.index += 1
             self.semantic_stack.pop(1)
-            if function.type == 'int':
+            if function.type == 'int_function':
                 t = self.get_temp()
                 self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(function.address, t)
                 self.index += 1
@@ -148,53 +150,47 @@ class CodeGeneration:
                 self.semantic_stack.push(function.address)
         else:
             self.output()
-        # print(self.semantic_stack.stack)
 
     def type(self, token):
         self.semantic_stack.push(token)
 
+    def define_id(self, token):
+        t = self.semantic_stack.top()
+        self.semantic_stack.pop(1)
+        self.symbol_table.new_symbol(token, self.data_index, self.current_scope, 0, self.index, t)
+        self.data_index += 4
+        self.semantic_stack.push(self.symbol_table.symbols[-1].address)
+        self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.semantic_stack.top())
+        self.index += 1
+
     def pid(self, token):
         p = self.symbol_table.find_symbol_by_name(token, self.current_scope)
-        if p == 'first':
-            t = self.semantic_stack.top()
-            self.semantic_stack.pop(1)
-            self.symbol_table.new_symbol(token, self.data_index, self.current_scope, 0, self.index, t)
-            self.data_index += 4
-            self.semantic_stack.push(self.symbol_table.symbols[-1].address)
-            self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.semantic_stack.top())
-            self.index += 1
-        else:
-            self.semantic_stack.push(p.address)
-        # print("pid")
-        # print(self.semantic_stack.stack)
+        self.semantic_stack.push(p.address)
 
     def pop(self):
         self.semantic_stack.pop()
-        # print("pop")
-        # print(self.semantic_stack.stack)
 
     def pnum(self, token):
         self.semantic_stack.push('#{}'.format(token))
-        # print("pnum")
-        # print(self.semantic_stack.stack)
 
     def save_array(self):
         array_size = self.semantic_stack.get_from_top(0)
+        array_size = int(array_size.replace('#', ''))
         symbol = self.symbol_table.symbols[-1]
         symbol.length = array_size
-        for i in range(int(array_size.replace('#', '')) - 1):
+        symbol.type = symbol.type + '_array'
+        for i in range(array_size - 1):
             self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(0, self.data_index)
             self.index += 1
             self.data_index += 4
+        self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(symbol.address, self.data_index)
+        self.data_index += 4
+        self.index += 1
         self.semantic_stack.pop(2)
-        # print("save_arr")
-        # print(self.semantic_stack.stack)
 
     def save(self):
         self.semantic_stack.push(self.index)
         self.index += 1
-        # print("save")
-        # print(self.semantic_stack.stack)
 
     def jpf(self):
         self.pb[self.semantic_stack.top()] = '(JPF, {}, {}, )'.format(self.semantic_stack.get_from_top(1), self.index + 1)
@@ -225,15 +221,17 @@ class CodeGeneration:
         self.index += 1
         self.semantic_stack.pop(2)
         self.semantic_stack.push(temp)
-        # print("assign")
-        # print(self.semantic_stack.stack)
 
     def address_array(self):
         t = self.get_temp()
         self.pb[self.index] = '(MULT, {}, #4, {})'.format(self.semantic_stack.top(), t)
         self.semantic_stack.pop()
         self.index += 1
-        self.pb[self.index] = '(ADD, #{}, {}, {}'.format(self.semantic_stack.top(), t, t)
+        symbol = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope)
+        if symbol.type.endswith('_array_input'):
+            self.pb[self.index] = '(ADD, {}, {}, {})'.format(self.semantic_stack.top(), t, t)
+        else:
+            self.pb[self.index] = '(ADD, #{}, {}, {})'.format(self.semantic_stack.top(), t, t)
         self.semantic_stack.pop()
         self.index += 1
         self.semantic_stack.push('@' + str(t))
