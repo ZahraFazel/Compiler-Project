@@ -9,11 +9,10 @@ int foo(int x){
 		return x + c;
 	}
 }
-
 void main(void){
 	int i;
 	int a[10];
-	//i= foo(0,1);
+	i= foo(0,1);
 	output(i);
 	//i=foo(a);
 	//output(i);

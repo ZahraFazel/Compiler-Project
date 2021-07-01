@@ -1038,7 +1038,7 @@ class Parser:
             self.match(node, ('SYMBOL', ['(']))
             self.args(node)
             self.match(node, ('SYMBOL', [')']))
-            self.code_generator.code_gen('#function_call')
+            self.code_generator.code_gen('#function_call', line_num=self.scanner.line)
         elif self.lookahead_lexeme == '[':
             node = anytree.Node('Var-call-prime', parent=parent)
             self.var_prime(node)
@@ -1085,7 +1085,7 @@ class Parser:
             self.match(node, ('SYMBOL', ['(']))
             self.args(node)
             self.match(node, ('SYMBOL', [')']))
-            self.code_generator.code_gen('#function_call')
+            self.code_generator.code_gen('#function_call', line_num=self.scanner.line)
         elif self.lookahead_lexeme in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
             node = anytree.Node('Factor-prime', parent=parent)
             anytree.Node('epsilon', parent=node)

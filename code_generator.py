@@ -36,6 +36,8 @@ class CodeGeneration:
             self.semantic_routines[action_symbol](token, line_num)
         elif action_symbol in ['#pnum', '#operator', '#type', '#define_id']:
             self.semantic_routines[action_symbol](token)
+        elif action_symbol in ['#function_call']:
+            self.semantic_routines[action_symbol](line_num)
         else:
             self.semantic_routines[action_symbol]()
 
@@ -119,7 +121,7 @@ class CodeGeneration:
         else:
             self.semantic_stack.push('output')
 
-    def function_call(self):
+    def function_call(self, line_num):
         n_params = 0
         while not isinstance(self.semantic_stack.get_from_top(n_params), str) or \
                 (isinstance(self.semantic_stack.get_from_top(n_params), str) and
@@ -128,32 +130,36 @@ class CodeGeneration:
                  self.semantic_stack.get_from_top(n_params).startswith('@')):
             n_params += 1
         function = self.symbol_table.find_symbol_by_name(self.semantic_stack.get_from_top(n_params), None)
-        if function.name != 'output':
-            params = self.symbol_table.find_function_parameters(function.name, function.length)
-            params.reverse()
-            for param in params:
-                if param.type.endswith('_array_input'):
-                    length = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope).length
-                    start = 4 * length + self.semantic_stack.top()
-                    self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(start, param.address)
-                else:
-                    self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), param.address)
+        if function.length != n_params:
+            self.semantic_checker.error('actual_and_formal_parameters_number_matching', line_num, function.name)
+            self.semantic_stack.pop(n_params + 1)
+        else:
+            if function.name != 'output':
+                params = self.symbol_table.find_function_parameters(function.name, function.length)
+                params.reverse()
+                for param in params:
+                    if param.type.endswith('_array_input'):
+                        length = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope).length
+                        start = 4 * length + self.semantic_stack.top()
+                        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(start, param.address)
+                    else:
+                        self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), param.address)
+                    self.index += 1
+                    self.semantic_stack.pop(1)
+                self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.index + 2, function.address + 4)
+                self.index += 1
+                self.pb[self.index] = '(JP, {}, , )'.format(function.starts_at)
                 self.index += 1
                 self.semantic_stack.pop(1)
-            self.pb[self.index] = '(ASSIGN, #{}, {}, )'.format(self.index + 2, function.address + 4)
-            self.index += 1
-            self.pb[self.index] = '(JP, {}, , )'.format(function.starts_at)
-            self.index += 1
-            self.semantic_stack.pop(1)
-            if function.type == 'int_function':
-                t = self.get_temp()
-                self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(function.address, t)
-                self.index += 1
-                self.semantic_stack.push(t)
+                if function.type == 'int_function':
+                    t = self.get_temp()
+                    self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(function.address, t)
+                    self.index += 1
+                    self.semantic_stack.push(t)
+                else:
+                    self.semantic_stack.push(function.address)
             else:
-                self.semantic_stack.push(function.address)
-        else:
-            self.output()
+                self.output()
 
     def type(self, token):
         self.semantic_stack.push(token)
