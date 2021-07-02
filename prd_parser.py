@@ -166,10 +166,12 @@ class Parser:
     # Var-declaration-prime -> ; | [ NUM ] ;
     def var_declaration_prime(self, parent):
         if self.lookahead_lexeme == ';':
+            self.code_generator.code_gen('#check_type', line_num=self.scanner.line)
             node = anytree.Node('Var-declaration-prime', parent=parent)
             self.code_generator.code_gen('#pop')
             self.match(node, ('SYMBOL', [';']))
         elif self.lookahead_lexeme == '[':
+            self.code_generator.code_gen('#check_type', line_num=self.scanner.line)
             node = anytree.Node('Var-declaration-prime', parent=parent)
             self.match(node, ('SYMBOL', ['[']))
             self.code_generator.code_gen('#pnum', self.lookahead_lexeme)
@@ -221,6 +223,7 @@ class Parser:
             self.param_prime(node)
             self.param_list(node)
         elif self.lookahead_lexeme == 'void':
+            self.code_generator.code_gen('#type', self.lookahead_lexeme)
             node = anytree.Node('Params', parent=parent)
             self.match(node, ('KEYWORD', ['void']))
             self.param_list_void_abtar(node)
@@ -239,13 +242,16 @@ class Parser:
     def param_list_void_abtar(self, parent):
         if self.lookahead_type == 'ID':
             node = anytree.Node('Param-list-void-abtar', parent=parent)
-            self.code_generator.code_gen('#pid', self.lookahead_lexeme, self.scanner.line)
+            self.code_generator.code_gen('#define_id', self.lookahead_lexeme)
             self.match(node, ('ID', ['ID']))
+            self.code_generator.code_gen('#add_param')
+            self.code_generator.code_gen('#check_type', line_num=self.scanner.line)
             self.param_prime(node)
             self.param_list(node)
         elif self.lookahead_lexeme == ')':
             node = anytree.Node('Param-list-void-abtar', parent=parent)
             anytree.Node('epsilon', parent=node)
+            self.code_generator.code_gen('#pop')
         elif self.lookahead_lexeme is not None:
             if self.lookahead_lexeme == '$':
                 self.errors += '#{0} : syntax error, unexpected EOF\n'.format(self.scanner.line)

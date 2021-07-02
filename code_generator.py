@@ -29,14 +29,15 @@ class CodeGeneration:
                                   '#function_call': self.function_call, '#add_param': self.add_param,
                                   '#define_function': self.define_function, '#return': self._return,
                                   '#return_value': self.return_value, '#break': self._break, '#loop': self.loop,
-                                  '#type': self.type, '#array_input': self.array_input, '#define_id': self.define_id}
+                                  '#type': self.type, '#array_input': self.array_input, '#define_id': self.define_id,
+                                  '#check_type': self.check_type}
 
     def code_gen(self, action_symbol, token=None, line_num=None):
         if action_symbol in ['#pid']:
             self.semantic_routines[action_symbol](token, line_num)
         elif action_symbol in ['#pnum', '#operator', '#type', '#define_id']:
             self.semantic_routines[action_symbol](token)
-        elif action_symbol in ['#function_call', '#break']:
+        elif action_symbol in ['#function_call', '#break', '#check_type']:
             self.semantic_routines[action_symbol](line_num)
         else:
             self.semantic_routines[action_symbol]()
@@ -201,6 +202,12 @@ class CodeGeneration:
         self.semantic_stack.push(self.symbol_table.symbols[-1].address)
         self.pb[self.index] = '(ASSIGN, #0, {}, )'.format(self.semantic_stack.top())
         self.index += 1
+
+    def check_type(self, line_num):
+        symbol = self.symbol_table.symbols[-1]
+        if symbol.type == 'void':
+            self.semantic_checker.error('void_type', line_num, symbol.name)
+            symbol.type = 'int'
 
     def pid(self, token, line_num):
         p = self.symbol_table.find_symbol_by_name(token, self.current_scope)
