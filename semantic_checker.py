@@ -13,8 +13,9 @@ class SemanticChecker:
         elif error_type == 'break_statement':
             self.errors += '#{} : Semantic Error! No \'while\' or \'for\' found for \'break\'.\n'.format(line_number)
         elif error_type == 'type_mismatch':
-            self.errors += '#{} : Semantic Error! Type mismatch in operands, Got \'{}\' instead of \'{}\'.\n'.format\
-                (line_number, args[0], args[1])
+            self.errors += '#{} : Semantic Error! Type mismatch in operands, Got {} instead of {}.\n'.format(line_number,
+                                                                                                             args[0],
+                                                                                                             args[1])
         elif error_type == 'actual_and_formal_parameters_type_matching':
             self.errors += '#{} : Semantic Error! Mismatch in type of argument {} for \'{}\'. Expected \'{}\' but got ' \
                            '\'{}\' instead.\n'.format(line_number, args[0], args[1], args[2], args[3])

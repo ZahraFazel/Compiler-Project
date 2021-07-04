@@ -7,13 +7,13 @@ for file in glob('D:/University/Compiler Design/Project/CodeGeneration_Tests/*/i
     # for file in glob('/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/CodeGeneration_Tests/*/input.txt'):
     file = file.replace('\\', '/')
     folder = file.split('/')[-2]
-    if folder[0] == 'T' and int(folder[1:]) <= 25:
-        input_path = 'D:/University/Compiler Design/Project/CodeGeneration_Tests/' + folder
-        # input_path = '/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/CodeGeneration_Tests/' + folder
-        chdir(input_path)
-        if not path.exists(input_path + '/output'):
-            mkdir('output')
-        run(input_path)
+    input_path = 'D:/University/Compiler Design/Project/CodeGeneration_Tests/' + folder
+    # input_path = '/Users/fereshtah/Desktop/term 8/compiler/Project/Compiler-Project/CodeGeneration_Tests/' + folder
+    chdir(input_path)
+    if not path.exists(input_path + '/output'):
+        mkdir('output')
+    run(input_path)
+    if folder[0] == 'T':
         chdir(input_path + '/output')
         result = subprocess.Popen(['tester_Windows'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = result.communicate()
@@ -27,8 +27,13 @@ for file in glob('D:/University/Compiler Design/Project/CodeGeneration_Tests/*/i
         result = result.replace(' ', '').replace('\t', '').replace('\n', '').replace('\r', '').lower()
         with open(input_path + '/expected.txt', 'r') as f:
             expected_result = f.read().replace(' ', '').replace('\t', '').replace('\n', '').replace('\r', '').lower()
-        if expected_result == result:
-            print('Test ' + folder + ': PASS\n')
-        else:
-            print('Test ' + folder + ': FAIL\n')
-            print(result)
+    else:
+        with open(input_path + '/semantic_errors.txt', 'r') as f:
+            expected_result = f.read().replace(' ', '').replace('\t', '').replace('\n', '').replace('\r', '').lower()
+        with open(input_path + '/output/semantic_errors.txt', 'r') as f:
+            result = f.read().replace(' ', '').replace('\t', '').replace('\n', '').replace('\r', '').lower()
+    if expected_result == result:
+        print('Test ' + folder + ': PASS\n')
+    else:
+        print('Test ' + folder + ': FAIL\n')
+        print(result)

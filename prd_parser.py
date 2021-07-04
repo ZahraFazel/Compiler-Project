@@ -622,7 +622,7 @@ class Parser:
             node = anytree.Node('B', parent=parent)
             self.match(node, ('SYMBOL', ['=']))
             self.expression(node)
-            self.code_generator.code_gen('#assign')
+            self.code_generator.code_gen('#assign', line_num=self.scanner.line)
         elif self.lookahead_lexeme == '[':
             node = anytree.Node('B', parent=parent)
             self.match(node, ('SYMBOL', ['[']))
@@ -662,7 +662,7 @@ class Parser:
             node = anytree.Node('H', parent=parent)
             self.match(node, ('SYMBOL', ['=']))
             self.expression(node)
-            self.code_generator.code_gen('#assign')
+            self.code_generator.code_gen('#assign', line_num=self.scanner.line)
         elif self.lookahead_lexeme in ['<', '==', '+', '-', '*']:
             node = anytree.Node('H', parent=parent)
             self.g(node)
@@ -737,7 +737,7 @@ class Parser:
             self.code_generator.code_gen('#operator', self.lookahead_lexeme)
             self.relop(node)
             self.additive_expression(node)
-            self.code_generator.code_gen('#relop')
+            self.code_generator.code_gen('#relop', line_num=self.scanner.line)
         elif self.lookahead_lexeme in [';', ']', ')', ',']:
             node = anytree.Node('C', parent=parent)
             anytree.Node('epsilon', parent=node)
@@ -837,7 +837,7 @@ class Parser:
             self.code_generator.code_gen('#operator', self.lookahead_lexeme)
             self.addop(node)
             self.term(node)
-            self.code_generator.code_gen('#add_or_sub')
+            self.code_generator.code_gen('#add_or_sub', line_num=self.scanner.line)
             self.d(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==']:
             node = anytree.Node('D', parent=parent)
@@ -929,7 +929,7 @@ class Parser:
             node = anytree.Node('G', parent=parent)
             self.match(node, ('SYMBOL', ['*']))
             self.signed_factor(node)
-            self.code_generator.code_gen('#mult')
+            self.code_generator.code_gen('#mult', line_num=self.scanner.line)
             self.g(node)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-']:
             node = anytree.Node('G', parent=parent)
@@ -955,7 +955,7 @@ class Parser:
             self.match(node, ('SYMBOL', ['+', '-']))
             self.factor(node)
             if flag:
-                self.code_generator.code_gen('#signed_num')
+                self.code_generator.code_gen('#signed_num', line_num=self.scanner.line)
         elif self.lookahead_lexeme in {';', ']', ')', ',', '<', '==', '+', '-', '*'}:
             self.errors += '#{0} : syntax error, missing signed-factor\n'.format(self.scanner.line)
         elif self.lookahead_lexeme is not None:
