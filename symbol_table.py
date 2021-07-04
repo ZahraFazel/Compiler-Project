@@ -48,15 +48,6 @@ class SymbolTable:
                 break
         return first_function == function_name
 
-    def get_first_int(self, scope):
-        for i in range(len(self.symbols) - 1, -1, -1):
-            if self.symbols[i].type == 'int' and self.symbols[i].scope == scope:
-                return self.symbols[i]
-        for i in range(len(self.symbols) - 1, -1, -1):
-            if self.symbols[i].type == 'int' and self.symbols[i].scope is None:
-                return self.symbols[i]
-
-
     def __str__(self):
         output = ''
         for symbol in self.symbols:

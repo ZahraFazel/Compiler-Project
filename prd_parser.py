@@ -997,7 +997,7 @@ class Parser:
             self.match(node, ('SYMBOL', ['+', '-']))
             self.factor(node)
             if flag:
-                self.code_generator.code_gen('#signed_num')
+                self.code_generator.code_gen('#signed_num', line_num=self.scanner.line)
         elif self.lookahead_lexeme in [';', ']', ')', ',', '<', '==', '+', '-', '*']:
             self.errors += '#{0} : syntax error, missing signed-factor-zegond\n'.format(self.scanner.line)
         elif self.lookahead_lexeme is not None:

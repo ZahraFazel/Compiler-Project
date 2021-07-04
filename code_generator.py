@@ -15,7 +15,7 @@ class CodeGeneration:
         self.pb = [''] * 500
         self.pb[0] = '(ASSIGN, #0, 500, )'
         self.data_index = 508
-        self.temp_index = 1000
+        self.temp_index = 2000
         self.main = 1
         self.semantic_checker = SemanticChecker()
         self.semantic_routines = {'#pid': self.pid, '#pop': self.pop, '#pnum': self.pnum, '#save_array': self.save_array,
@@ -139,7 +139,8 @@ class CodeGeneration:
         if function.length != n_params:
             self.semantic_checker.error('actual_and_formal_parameters_number_matching', line_num, function.name)
             self.semantic_stack.pop(n_params + 1)
-            self.semantic_stack.push(function.address)
+            t = self.get_temp()
+            self.semantic_stack.push(t)
             return
         else:
             if function.name != 'output':
@@ -152,7 +153,8 @@ class CodeGeneration:
                                                         function.length - params.index(param), function.name, 'array',
                                                         'int')
                             self.semantic_stack.pop(n_params - params.index(param) + 1)
-                            self.semantic_stack.push(function.address)
+                            t = self.get_temp()
+                            self.semantic_stack.push(t)
                             return
                         else:
                             array = self.symbol_table.find_symbol_by_address(self.semantic_stack.top(), self.current_scope)
@@ -164,7 +166,8 @@ class CodeGeneration:
                                                             function.length - params.index(param), function.name, 'array',
                                                             'int')
                                 self.semantic_stack.pop(n_params - params.index(param) + 1)
-                                self.semantic_stack.push(function.address)
+                                t = self.get_temp()
+                                self.semantic_stack.push(t)
                                 return
                     else:
                         if not isinstance(self.semantic_stack.top(), str) and self.semantic_stack.top() < 1000:
@@ -182,7 +185,8 @@ class CodeGeneration:
                                                         function.length - params.index(param), function.name, 'int',
                                                         'array')
                             self.semantic_stack.pop(n_params - params.index(param) + 1)
-                            self.semantic_stack.push(function.address)
+                            t = self.get_temp()
+                            self.semantic_stack.push(t)
                             return
                     self.index += 1
                     self.semantic_stack.pop(1)
@@ -197,7 +201,8 @@ class CodeGeneration:
                     self.index += 1
                     self.semantic_stack.push(t)
                 else:
-                    self.semantic_stack.push(function.address)
+                    t = self.get_temp()
+                    self.semantic_stack.push(t)
             else:
                 self.output()
 
@@ -280,6 +285,8 @@ class CodeGeneration:
         par2_type = self.get_type(self.semantic_stack.get_from_top(1))
         if par1_type == 'array' or par2_type == 'array':
             self.semantic_checker.error('type_mismatch', line_num, 'array', 'int')
+        elif par1_type == 'function' or par2_type == 'function':
+            self.semantic_checker.error('type_mismatch', line_num, 'function', 'int')
         self.pb[self.index] = '(ASSIGN, {}, {}, )'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(1))
         temp = self.semantic_stack.top()
         self.index += 1
@@ -305,6 +312,8 @@ class CodeGeneration:
         par2_type = self.get_type(self.semantic_stack.get_from_top(2))
         if par1_type == 'array' or par2_type == 'array':
             self.semantic_checker.error('type_mismatch', line_num, 'array', 'int')
+        elif par1_type == 'function' or par2_type == 'function':
+            self.semantic_checker.error('type_mismatch', line_num, 'function', 'int')
         addr = self.get_temp()
         if self.semantic_stack.get_from_top(1) == '<':
             self.pb[self.index] = '(LT, {}, {}, {})'.format(self.semantic_stack.get_from_top(2), self.semantic_stack.top(), addr)
@@ -322,6 +331,8 @@ class CodeGeneration:
         par2_type = self.get_type(self.semantic_stack.get_from_top(2))
         if par1_type == 'array' or par2_type == 'array':
             self.semantic_checker.error('type_mismatch', line_num, 'array', 'int')
+        elif par1_type == 'function' or par2_type == 'function':
+            self.semantic_checker.error('type_mismatch', line_num, 'function', 'int')
         t = self.get_temp()
         if self.semantic_stack.get_from_top(1) == '+':
             self.pb[self.index] = '(ADD, {}, {}, {})'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(2), t)
@@ -336,6 +347,8 @@ class CodeGeneration:
         par2_type = self.get_type(self.semantic_stack.get_from_top(1))
         if par1_type == 'array' or par2_type == 'array':
             self.semantic_checker.error('type_mismatch', line_num, 'array', 'int')
+        elif par1_type == 'function' or par2_type == 'function':
+            self.semantic_checker.error('type_mismatch', line_num, 'function', 'int')
         t = self.get_temp()
         self.pb[self.index] = '(MULT, {}, {}, {})'.format(self.semantic_stack.top(), self.semantic_stack.get_from_top(1), t)
         self.index += 1
@@ -346,6 +359,8 @@ class CodeGeneration:
         par1_type = self.get_type(self.semantic_stack.top())
         if par1_type == 'array':
             self.semantic_checker.error('type_mismatch', line_num, 'array', 'int')
+        elif par1_type == 'function':
+            self.semantic_checker.error('type_mismatch', line_num, 'function', 'int')
         addr = self.get_temp()
         self.pb[self.index] = '(SUB, #0, {}, {})'.format(self.semantic_stack.top(), addr)
         self.semantic_stack.pop()
@@ -439,7 +454,9 @@ class CodeGeneration:
                 return 'int'
             else:
                 par_symbol = self.symbol_table.find_symbol_by_address(par, self.current_scope)
-                if par_symbol.type == 'int' or par_symbol.type == 'int_function':
+                if par_symbol.type == 'int':
                     return 'int'
+                elif par_symbol.type == 'int_function':
+                    return 'function'
                 else:
                     return 'array'
