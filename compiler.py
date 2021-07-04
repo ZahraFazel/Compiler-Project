@@ -4,14 +4,11 @@ Fereshteh Forghani 96102104
 """
 from prd_parser import Parser
 from scanner import Scanner
-from os import chdir
-import subprocess
 
 
 def run(path=''):
     input_path = path + '/input.txt' if path != '' else 'input.txt'
-    output_path = path + '/output/' if path != '' else 'CodeGeneration_Tests/Tester/'
-    # output_path = path
+    output_path = path + '/output/' if path != '' else ''
     scanner = Scanner(input_path)
     parser = Parser(scanner)
     parser.parse()
